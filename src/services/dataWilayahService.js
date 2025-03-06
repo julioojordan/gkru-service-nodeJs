@@ -1,7 +1,7 @@
 class DataWilayahService {
     constructor(repository, db) {
         this.repository = repository;
-        this.db = db; // mysql2 connection pool
+        this.db = db;
     }
 
     async findOne(id) {
@@ -27,7 +27,6 @@ class DataWilayahService {
             await connection.commit();
             return result;
         } catch (error) {
-            console.log(error)
             await connection.rollback();
             throw error;
         } finally {
@@ -35,11 +34,11 @@ class DataWilayahService {
         }
     }
 
-    async add(data) {
+    async add(req) {
         const connection = await this.db.getConnection();
         try {
             await connection.beginTransaction();
-            const result = await this.repository.add(data, connection);
+            const result = await this.repository.add(req.body, connection);
             await connection.commit();
             return result;
         } catch (error) {
@@ -50,11 +49,11 @@ class DataWilayahService {
         }
     }
 
-    async update(id, data) {
+    async update(req) {
         const connection = await this.db.getConnection();
         try {
             await connection.beginTransaction();
-            const result = await this.repository.update(id, data, connection);
+            const result = await this.repository.update(req.params.idWilayah , req.body, connection);
             await connection.commit();
             return result;
         } catch (error) {

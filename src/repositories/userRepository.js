@@ -1,8 +1,7 @@
 const createHttpError = require("http-errors");
 
 class UserRepository {
-  constructor(pool) {
-    this.pool = pool;
+  constructor() {
   }
 
   async findOne(req, connection) {
@@ -18,6 +17,9 @@ class UserRepository {
 
       return rows[0];
     } catch (error) {
+      if (error instanceof createHttpError.HttpError) {
+        throw error;
+      }
       throw createHttpError(500, `Internal Server Error: ${error.message}`, {
         expose: true,
       });

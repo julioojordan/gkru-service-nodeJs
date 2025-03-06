@@ -8,9 +8,9 @@ class DataWilayahController {
   async findOne(req, res) {
     const logger = req.app.locals.logger;
     try {
-      const dataWilayah = await this.dataWilayahService.findOne(req);
+      const dataWilayah = await this.dataWilayahService.findOne(req.params.idWilayah );
       logger.info("Fetching wilayah sukses", { id: req.params.idWilayah });
-      res.json({ code: 200, status: "Ok", data: dataWilayah });
+      res.json({ code: 200, status: "Ok", data: dataWilayah, message: "data wilayah ditemukan" });
     } catch (err) {
       logger.error("Error fetching wilayah", { error: err.message });
       return handleError(res, logger, err);
@@ -22,7 +22,7 @@ class DataWilayahController {
     try {
       const dataWilayah = await this.dataWilayahService.findAll();
       logger.info("Fetching semua wilayah sukses");
-      res.json({ code: 200, status: "Ok", data: dataWilayah });
+      res.json({ code: 200, status: "Ok", data: dataWilayah, message: "data wilayah ditemukan" });
     } catch (err) {
       return handleError(res, logger, err);
     }
@@ -33,7 +33,7 @@ class DataWilayahController {
     try {
       const dataWilayah = await this.dataWilayahService.add(req);
       logger.info("Wilayah berhasil ditambahkan", { data: dataWilayah });
-      res.json({ code: 200, status: "Ok", data: dataWilayah });
+      res.json({ code: 200, status: "Ok", data: dataWilayah, message: "data wilayah berhasil ditambahkan" });
     } catch (err) {
       logger.error("Error menambahkan wilayah", { error: err.message });
       return handleError(res, logger, err);
@@ -45,7 +45,7 @@ class DataWilayahController {
     try {
       const dataWilayah = await this.dataWilayahService.update(req);
       logger.info("Wilayah berhasil diupdate", { id: req.params.idWilayah });
-      res.json({ code: 200, status: "Ok", data: dataWilayah });
+      res.json({ code: 200, status: "Ok", data: dataWilayah, message: "data wilayah berhasil diupdate" });
     } catch (err) {
       logger.error("Error mengupdate wilayah", { error: err.message });
       return handleError(res, logger, err);
@@ -55,9 +55,9 @@ class DataWilayahController {
   async deleteOne(req, res) {
     const logger = req.app.locals.logger;
     try {
-      const dataWilayah = await this.dataWilayahService.deleteOne(req);
+      const dataWilayah = await this.dataWilayahService.deleteOne(req.params.idWilayah);
       logger.info("Wilayah berhasil dihapus", { id: req.params.idWilayah });
-      res.json({ code: 200, status: "Ok", data: dataWilayah });
+      res.json({ code: 200, status: "Ok", data: dataWilayah, message: "data wilayah berhasil dihapus" });
     } catch (err) {
       logger.error("Error menghapus wilayah", { error: err.message });
       return handleError(res, logger, err);
@@ -68,8 +68,8 @@ class DataWilayahController {
     const logger = req.app.locals.logger;
     try {
       const totalWilayah = await this.dataWilayahService.getTotalWilayah(req);
-      logger.info("Total wilayah berhasil dihitung");
-      res.json({ code: 200, status: "Ok", data: totalWilayah });
+      logger.info("Total wilayah berhasil didapat");
+      res.json({ code: 200, status: "Ok", data: totalWilayah, message: "data total wilayah didapat" });
     } catch (err) {
       logger.error("Error menghitung total wilayah", { error: err.message });
       return handleError(res, logger, err);

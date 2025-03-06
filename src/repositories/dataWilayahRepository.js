@@ -1,8 +1,7 @@
 const createHttpError = require("http-errors");
 
 class DataWilayahRepository {
-  constructor(db) {
-    this.db = db; // bisa dihapus jika tidak digunakan
+  constructor() {
   }
 
   async findOne(idWilayah, conn) {
@@ -11,11 +10,14 @@ class DataWilayahRepository {
       const [rows] = await conn.execute(sqlScript, [idWilayah]);
 
       if (rows.length === 0) {
-        throw createHttpError(404, "Wilayah not found");
+        throw createHttpError(404, "Wilayah tidak Ditemukan");
       }
 
       return rows[0];
     } catch (error) {
+      if (error instanceof createHttpError.HttpError) {
+        throw error;
+      }
       throw createHttpError(500, `Internal Server Error: ${error.message}`);
     }
   }
@@ -44,7 +46,7 @@ class DataWilayahRepository {
       ]);
 
       if (!result.insertId) {
-        throw createHttpError(500, "Failed to insert wilayah");
+        throw createHttpError(500, "gagal memasukan data wilayah");
       }
 
       return {
@@ -53,6 +55,9 @@ class DataWilayahRepository {
         namaWilayah: request.namaWilayah,
       };
     } catch (error) {
+      if (error instanceof createHttpError.HttpError) {
+        throw error;
+      }
       throw createHttpError(500, `Internal Server Error: ${error.message}`);
     }
   }
@@ -86,11 +91,14 @@ class DataWilayahRepository {
 
       return { id: idWilayah, ...request };
     } catch (error) {
+      if (error instanceof createHttpError.HttpError) {
+        throw error;
+      }
       throw createHttpError(500, `Internal Server Error: ${error.message}`);
     }
   }
 
-  async deleteOne(idWilayah, conn) {
+  async deleteOne(idWilayah, conn) { // TODO perlu cek apakah ada lingkungan yang di wilayah ini atau tidak
     try {
       const sqlScript = "DELETE FROM wilayah WHERE id = ?";
       const [result] = await conn.execute(sqlScript, [idWilayah]);
@@ -101,6 +109,9 @@ class DataWilayahRepository {
 
       return { id: idWilayah };
     } catch (error) {
+      if (error instanceof createHttpError.HttpError) {
+        throw error;
+      }
       throw createHttpError(500, `Internal Server Error: ${error.message}`);
     }
   }
@@ -116,6 +127,9 @@ class DataWilayahRepository {
 
       return { total: rows[0].total };
     } catch (error) {
+      if (error instanceof createHttpError.HttpError) {
+        throw error;
+      }
       throw createHttpError(500, `Internal Server Error: ${error.message}`);
     }
   }
