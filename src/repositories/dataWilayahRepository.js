@@ -98,23 +98,41 @@ class DataWilayahRepository {
     }
   }
 
-  async deleteOne(idWilayah, conn) { // TODO perlu cek apakah ada lingkungan yang di wilayah ini atau tidak
+  async deleteOne(idWilayah, conn) { //TODO perlu di cek lagi ya
     try {
-      const sqlScript = "DELETE FROM wilayah WHERE id = ?";
-      const [result] = await conn.execute(sqlScript, [idWilayah]);
+        // Cek apakah masih ada lingkungan yang menggunakan wilayah ini
+        const totalLingkunganSql = `SELECT COUNT(*) AS total FROM lingkungan WHERE id_wilayah = ?`;
+        const [lingkunganRows] = await conn.execute(totalLingkunganSql, [idWilayah]);
 
-      if (result.affectedRows === 0) {
-        throw createHttpError(404, "Failed to delete wilayah or wilayah not found");
-      }
+        if (lingkunganRows[0].total !== 0) {
+            throw createHttpError(400, "Gagal menghapus wilayah karena masih digunakan oleh beberapa lingkungan.");
+        }
 
-      return { id: idWilayah };
+        // Cek apakah masih ada keluarga yang terkait dengan wilayah ini
+        const totalKeluargaSql = `SELECT COUNT(*) AS total FROM data_keluarga WHERE id_wilayah = ?`;
+        const [keluargaRows] = await conn.execute(totalKeluargaSql, [idWilayah]);
+
+        if (keluargaRows[0].total !== 0) {
+            throw createHttpError(400, "Gagal menghapus wilayah karena masih digunakan oleh beberapa keluarga.");
+        }
+
+        // Jika tidak ada lingkungan dan keluarga yang terkait, lanjutkan penghapusan
+        const deleteSql = "DELETE FROM wilayah WHERE id = ?";
+        const [result] = await conn.execute(deleteSql, [idWilayah]);
+
+        if (result.affectedRows === 0) {
+            throw createHttpError(404, "Gagal menghapus wilayah atau wilayah tidak ditemukan.");
+        }
+
+        return { id: idWilayah };
     } catch (error) {
-      if (error instanceof createHttpError.HttpError) {
-        throw error;
-      }
-      throw createHttpError(500, `Internal Server Error: ${error.message}`);
+        if (error instanceof createHttpError.HttpError) {
+            throw error;
+        }
+        throw createHttpError(500, `Internal Server Error: ${error.message}`);
     }
-  }
+}
+
 
   async getTotalWilayah(conn) {
     try {
