@@ -2,9 +2,9 @@ const express = require("express");
 const mysql = require("mysql2/promise");
 const winston = require("winston");
 const { setupRoutes } = require("./src/routes/setupRoutes");
-const { DataWilayahRepository, UserRepository } = require("./src/repositories");
-const { DataWilayahService, UserService } = require("./src/services");
-const { DataWilayahController, UserController } = require("./src/controllers");
+const { DataWilayahRepository, UserRepository, DataLingkunganRepository } = require("./src/repositories");
+const { DataWilayahService, UserService, DataLingkunganService } = require("./src/services");
+const { DataWilayahController, UserController, DataLingkunganController } = require("./src/controllers");
 const fs = require("fs");
 const path = require("path");
 require("dotenv").config();
@@ -81,21 +81,28 @@ async function startServer() {
   });
 
   app.use((req, res, next) => {
-    const dataWilayahRepository = new DataWilayahRepository(req.db);
+    const dataWilayahRepository = new DataWilayahRepository();
     const dataWilayahService = new DataWilayahService(
       dataWilayahRepository,
       req.app.locals.db
     );
     const dataWilayahController = new DataWilayahController(dataWilayahService);
-
     
-    const userRepository = new UserRepository(req.db);
+    const dataLingkunganRepository = new DataLingkunganRepository();
+    const dataLingkunganService = new DataLingkunganService(
+      dataLingkunganRepository,
+      req.app.locals.db
+    );
+    const dataLingkunganController = new DataLingkunganController(dataLingkunganService);
+
+    const userRepository = new UserRepository();
     const userService = new UserService(
       userRepository,
       req.app.locals.db
     );
     const userController = new UserController(userService);
-    req.app.locals.controllers = { dataWilayahController, userController };
+    
+    req.app.locals.controllers = { dataWilayahController, userController, dataLingkunganController };
     next();
   });
 

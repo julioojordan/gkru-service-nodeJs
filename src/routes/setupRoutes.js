@@ -107,6 +107,83 @@ const setupRoutes = (app, logger) => {
     }
   });
 
+  // =========== LINGKUNGAN ROUTES ===============
+
+  app.patch(
+    "/lingkungan/:idLingkungan/update",
+    authMiddleware,
+    async (req, res) => {
+      try {
+        const { dataLingkunganController } = req.app.locals.controllers;
+        await dataLingkunganController.update(req, res);
+      } catch (err) {
+        res.status(500).json({ error: err.message });
+      }
+    }
+  );
+
+  app.delete(
+    "/lingkungan/:idLingkungan/delete",
+    authMiddleware,
+    async (req, res) => {
+      try {
+        const { dataLingkunganController } = req.app.locals.controllers;
+        await dataLingkunganController.deleteOne(req, res);
+      } catch (err) {
+        res.status(500).json({ error: err.message });
+      }
+    }
+  );
+
+  app.post("/lingkungan/add", authMiddleware, async (req, res) => {
+    try {
+      const { dataLingkunganController } = req.app.locals.controllers;
+      await dataLingkunganController.add(req, res);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.get("/lingkungan/getTotal", authMiddleware, async (req, res) => {
+    try {
+      const { dataLingkunganController } = req.app.locals.controllers;
+      await dataLingkunganController.getTotalLingkungan(req, res);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.get("/lingkungan/:idLingkungan", authMiddleware, async (req, res) => {
+    try {
+      const { dataLingkunganController } = req.app.locals.controllers;
+      await dataLingkunganController.findOneWithParam(req, res);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.get("/lingkungan", authMiddleware, async (req, res) => {
+    try {
+      const { dataLingkunganController } = req.app.locals.controllers;
+      await dataLingkunganController.findAll(req, res);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.get(
+    "/lingkunganWithTotalKeluarga",
+    authMiddleware,
+    async (req, res) => {
+      try {
+        const { dataLingkunganController } = req.app.locals.controllers;
+        await dataLingkunganController.findAllWithTotalKeluarga(req, res);
+      } catch (err) {
+        res.status(500).json({ error: err.message });
+      }
+    }
+  );
+
   // ========== STATIC FILE ==============
   app.use("/uploads", express.static("uploads"));
 
