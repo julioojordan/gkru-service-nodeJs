@@ -6,7 +6,7 @@ class DataWilayahRepository {
 
   async findOne(idWilayah, conn) {
     try {
-      const sqlScript = "SELECT id, kode_wilayah, nama_wilayah FROM wilayah WHERE id = ?";
+      const sqlScript = "SELECT id as Id, kode_wilayah as KodeWilayah, nama_wilayah as NamaWilayah FROM wilayah WHERE id = ?";
       const [rows] = await conn.execute(sqlScript, [idWilayah]);
 
       if (rows.length === 0) {
@@ -24,7 +24,7 @@ class DataWilayahRepository {
 
   async findAll(conn) {
     try {
-      const sqlScript = "SELECT id, kode_wilayah, nama_wilayah FROM wilayah ORDER BY id ASC";
+      const sqlScript = "SELECT id as Id, kode_wilayah as KodeWilayah, nama_wilayah as NamaWilayah FROM wilayah ORDER BY id ASC";
       const [rows] = await conn.execute(sqlScript);
 
     //   if (rows.length === 0) {
@@ -50,9 +50,9 @@ class DataWilayahRepository {
       }
 
       return {
-        id: result.insertId,
-        kodeWilayah: request.kodeWilayah,
-        namaWilayah: request.namaWilayah,
+        Id: result.insertId,
+        KodeWilayah: request.kodeWilayah,
+        NamaWilayah: request.namaWilayah,
       };
     } catch (error) {
       if (error instanceof createHttpError.HttpError) {
@@ -88,8 +88,11 @@ class DataWilayahRepository {
       if (result.affectedRows === 0) {
         throw createHttpError(404, "Failed to update wilayah or no changes made");
       }
-
-      return { id: idWilayah, ...request };
+      return {
+        Id: idWilayah,
+        KodeWilayah: request.kodeWilayah,
+        NamaWilayah: request.namaWilayah,
+      };
     } catch (error) {
       if (error instanceof createHttpError.HttpError) {
         throw error;
@@ -124,7 +127,7 @@ class DataWilayahRepository {
             throw createHttpError(404, "Gagal menghapus wilayah atau wilayah tidak ditemukan.");
         }
 
-        return { id: idWilayah };
+        return { Id: idWilayah };
     } catch (error) {
         if (error instanceof createHttpError.HttpError) {
             throw error;
@@ -133,17 +136,16 @@ class DataWilayahRepository {
     }
 }
 
-
   async getTotalWilayah(conn) {
     try {
-      const sqlScript = "SELECT COUNT(*) AS total FROM wilayah";
+      const sqlScript = "SELECT COUNT(*) AS Total FROM wilayah";
       const [rows] = await conn.execute(sqlScript);
 
-      if (rows.length === 0 || rows[0].total === undefined) {
+      if (rows.length === 0 || rows[0].Total === undefined) {
         throw createHttpError(500, "Failed to retrieve total wilayah");
       }
 
-      return { total: rows[0].total };
+      return { Total: rows[0].Total };
     } catch (error) {
       if (error instanceof createHttpError.HttpError) {
         throw error;
