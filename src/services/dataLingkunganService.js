@@ -4,11 +4,11 @@ class DataLingkunganService {
         this.db = db;
     }
 
-    async findOneWithParam(params) {
+    async findOneWithParam(idLingkungan) {
         const connection = await this.db.getConnection();
         try {
             await connection.beginTransaction();
-            const result = await this.repository.findOneWithParam(params, connection);
+            const result = await this.repository.findOneWithParam(idLingkungan, connection);
             await connection.commit();
             return result;
         } catch (error) {

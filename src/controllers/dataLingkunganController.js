@@ -8,7 +8,7 @@ class DataLingkunganController {
     async findOneWithParam(req, res) {
       const logger = req.app.locals.logger;
       try {
-        const dataLingkungan = await this.dataLingkunganService.findOneWithParam(req.params);
+        const dataLingkungan = await this.dataLingkunganService.findOneWithParam(req.params.idLingkungan);
         logger.info("Fetching data lingkungan sukses", { params: req.params });
         res.json({ code: 200, status: "Ok", data: dataLingkungan });
       } catch (err) {
@@ -56,8 +56,8 @@ class DataLingkunganController {
     async update(req, res) {
       const logger = req.app.locals.logger;
       try {
-        const dataLingkungan = await this.dataLingkunganService.update(req.params.id, req.body);
-        logger.info("Updating data lingkungan sukses", { id: req.params.id });
+        const dataLingkungan = await this.dataLingkunganService.update(req.params.idLingkungan, req.body);
+        logger.info("Updating data lingkungan sukses", { id: req.params.idLingkungan });
         res.json({ code: 200, status: "Ok", data: dataLingkungan });
       } catch (err) {
         logger.error("Error updating data lingkungan", { error: err.message });
@@ -68,9 +68,9 @@ class DataLingkunganController {
     async deleteOne(req, res) {
       const logger = req.app.locals.logger;
       try {
-        await this.dataLingkunganService.deleteOne(req.params.id);
-        logger.info("Deleting data lingkungan sukses", { id: req.params.id });
-        res.json({ code: 200, status: "Ok", message: "Data lingkungan berhasil dihapus" });
+        const dataLingkungan = await this.dataLingkunganService.deleteOne(req.params.idLingkungan);
+        logger.info("Deleting data lingkungan sukses", { id: req.params.idLingkungan });
+        res.json({ code: 200, status: "Ok", message: "Data lingkungan berhasil dihapus", data: dataLingkungan});
       } catch (err) {
         logger.error("Error deleting data lingkungan", { error: err.message });
         return handleError(res, logger, err);

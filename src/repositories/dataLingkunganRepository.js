@@ -5,14 +5,22 @@ class DataLingkunganRepository {
 
   async findOneWithParam(idLingkungan, connection) {
     try {
-      const sql = `SELECT l.id, l.kode_lingkungan, l.nama_lingkungan, w.id AS idWilayah, w.kode_wilayah, w.nama_wilayah FROM lingkungan l JOIN wilayah w ON l.id_wilayah = w.id WHERE l.id = ?`;
+      const sql = `SELECT l.id, l.kode_lingkungan, l.nama_lingkungan, w.id AS id_wilayah, w.kode_wilayah, w.nama_wilayah FROM lingkungan l JOIN wilayah w ON l.id_wilayah = w.id WHERE l.id = ?`;
 
       const [rows] = await connection.execute(sql, [idLingkungan]);
-      await connection.end();
       if (rows.length === 0) {
-        throw createError(400, "Lingkungan not found");
+        throw createHttpError(400, "Lingkungan not found");
       }
-      return rows[0];
+      return {
+        Id: rows[0].id,
+        KodeLingkungan: rows[0].kode_lingkungan,
+        NamaLingkungan: rows[0].nama_lingkungan,
+        Wilayah: {
+          Id: rows[0].id_wilayah,
+          KodeWilayah: rows[0].kode_wilayah,
+          NamaWilayah: rows[0].nama_wilayah,
+        },
+      };
     } catch (error) {
       if (error instanceof createHttpError.HttpError) {
         throw error;
@@ -58,7 +66,16 @@ class DataLingkunganRepository {
                 ORDER BY w.id ASC`;
 
       const [rows] = await connection.execute(sql);
-      return rows;
+      return rows.map((row) => ({
+        Id: row.id,
+        KodeLingkungan: row.kode_lingkungan,
+        NamaLingkungan: row.nama_lingkungan,
+        Wilayah: {
+          Id: row.id_wilayah,
+          KodeWilayah: row.kode_wilayah,
+          NamaWilayah: row.nama_wilayah,
+        },
+      }));
     } catch (error) {
       throw createHttpError(500, `Internal Server Error: ${error.message}`, {
         expose: true,
@@ -75,10 +92,10 @@ class DataLingkunganRepository {
         data.wilayah,
       ]);
       return {
-        id: result.insertId,
-        kodeLingkungan: data.kodeLingkungan,
-        namaLingkungan: data.namaLingkungan,
-        wilayah: data.wilayah,
+        Id: result.insertId,
+        KodeLingkungan: data.kodeLingkungan,
+        NamaLingkungan: data.namaLingkungan,
+        Wilayah: data.wilayah,
       };
     } catch (error) {
       throw createHttpError(500, `Failed to add data: ${error.message}`, {
@@ -106,13 +123,19 @@ class DataLingkunganRepository {
       }
 
       if (updates.length === 0) {
-        throw createError(400, "No fields to update");
+        throw createHttpError(400, "No fields to update");
       }
 
       params.push(id);
       const sql = `UPDATE lingkungan SET ${updates.join(", ")} WHERE id = ?`;
       await connection.execute(sql, params);
-      return { id, ...data };
+      
+      return {
+        Id: id,
+        KodeLingkungan: data.kodeLingkungan,
+        NamaLingkungan: data.namaLingkungan,
+        Wilayah: data.wilayah,
+      };
     } catch (error) {
       if (error instanceof createHttpError.HttpError) {
         throw error;
@@ -125,25 +148,25 @@ class DataLingkunganRepository {
 
   async deleteOne(id, connection) {
     try {
-      // Cek apakah masih ada keluarga yang terkait dengan wilayah ini
-      const totalKeluargaSql = `SELECT COUNT(*) AS total FROM data_keluarga WHERE id_wilayah = ?`;
-      const [keluargaRows] = await conn.execute(totalKeluargaSql, [idWilayah]);
+      // Cek apakah masih ada keluarga yang terkait dengan lingkungan ini
+      const totalKeluargaSql = `SELECT COUNT(*) AS total FROM data_keluarga WHERE id_lingkungan = ?`;
+      const [keluargaRows] = await connection.execute(totalKeluargaSql, [id]);
 
       if (keluargaRows[0].total !== 0) {
         throw createHttpError(
           400,
-          "Gagal menghapus wilayah karena masih digunakan oleh beberapa keluarga."
+          "Gagal menghapus lingkungan karena masih digunakan oleh beberapa keluarga."
         );
       }
       const sql = `DELETE FROM lingkungan WHERE id = ?`;
-      await connection.execute(sql, [id]);
+      const [result] = await connection.execute(sql, [id]);
       if (result.affectedRows === 0) {
         throw createHttpError(
           404,
-          "Gagal menghapus wilayah atau wilayah tidak ditemukan."
+          "Gagal menghapus lingkungan atau lingkungan tidak ditemukan."
         );
       }
-      return { id };
+      return { Id: id };
     } catch (error) {
       if (error instanceof createHttpError.HttpError) {
         throw error;
@@ -160,7 +183,7 @@ class DataLingkunganRepository {
                 l.id, 
                 l.kode_lingkungan, 
                 l.nama_lingkungan, 
-                w.id AS idWilayah, 
+                w.id AS id_wilayah, 
                 w.kode_wilayah, 
                 w.nama_wilayah, 
                 COUNT(k.nomor) AS total_keluarga 
@@ -171,8 +194,17 @@ class DataLingkunganRepository {
             ORDER BY w.id ASC`;
 
       const [rows] = await connection.execute(sql);
-      await connection.end();
-      return rows;
+      return rows.map((row) => ({
+        Id: row.id,
+        KodeLingkungan: row.kode_lingkungan,
+        NamaLingkungan: row.nama_lingkungan,
+        Wilayah: {
+          Id: row.id_wilayah,
+          KodeWilayah: row.kode_wilayah,
+          NamaWilayah: row.nama_wilayah,
+        },
+        TotalKeluarga: row.total_keluarga
+      }));
     } catch (error) {
       throw createHttpError(500, `Failed to add data: ${error.message}`, {
         expose: true,
@@ -186,9 +218,8 @@ class DataLingkunganRepository {
       const sql = `SELECT l.id, l.kode_lingkungan, l.nama_lingkungan, w.id AS idWilayah, w.kode_wilayah, w.nama_wilayah FROM lingkungan l JOIN wilayah w ON l.id_wilayah = w.id WHERE l.id = ?`;
 
       const [rows] = await connection.execute(sql, [id]);
-      await connection.end();
       if (rows.length === 0) {
-        throw createError(400, "Lingkungan not found");
+        throw createHttpError(400, "Lingkungan not found");
       }
       return rows[0];
     } catch (error) {
@@ -203,7 +234,7 @@ class DataLingkunganRepository {
 
   async getTotalLingkungan(connection) {
     try {
-      const sql = `SELECT COUNT(*) AS total FROM lingkungan`;
+      const sql = `SELECT COUNT(*) AS Total FROM lingkungan`;
       const [rows] = await connection.execute(sql);
       return rows[0];
     } catch (error) {
