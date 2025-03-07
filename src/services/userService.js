@@ -27,11 +27,11 @@ class UserService {
         const authToken = await authentication.createToken(user.username, req);
         await connection.commit();
         return {
-            Auth: authToken,
-            Id: user.Id,
-            Username: user.Username,
-            KetuaLingkungan: user.KetuaLingkungan,
-            KetuaWilayah: user.KetuaWilayah,
+            auth: authToken,
+            id: user.Id,
+            username: user.Username,
+            ketuaLingkungan: user.KetuaLingkungan,
+            ketuaWilayah: user.KetuaWilayah,
         }
       } catch (error) {
         await connection.rollback();

@@ -8,7 +8,7 @@ class UserRepository {
     const { username, password } = req.body;
     try {
       const sql =
-        "SELECT id, username, ketua_lingkungan, ketua_wilayah FROM users WHERE username = ? AND password = ?";
+        "SELECT id as Id, username as Username, ketua_lingkungan as KetuaLingkungan, ketua_wilayah as KetuaWilayah FROM users WHERE username = ? AND password = ?";
       const [rows] = await connection.execute(sql, [username, password]);
 
       if (rows.length === 0) {
@@ -29,7 +29,7 @@ class UserRepository {
   async findAll(connection) {
     try {
       const sql =
-        "SELECT id, username, ketua_lingkungan, ketua_wilayah FROM users";
+        "SELECT id as Id, username as Username, ketua_lingkungan as KetuaLingkungan, ketua_wilayah as KetuaWilayah FROM users";
       const [rows] = await connection.execute(sql);
 
       if (rows.length === 0) {
@@ -90,8 +90,10 @@ class UserRepository {
       }
 
       return {
-        id: idUser,
-        ...req.body,
+        Id: idUser,
+        Username: username,
+        KetuaLingkungan: ketuaLingkungan,
+        KetuaWilayah: ketuaWilayah
       };
     } catch (error) {
       // Jika error sudah merupakan instance dari createHttpError, langsung lempar ulang
@@ -126,7 +128,7 @@ class UserRepository {
         throw createHttpError(500, "Gagal menambahkan user", { expose: true });
       }
 
-      return { id: result.insertId };
+      return { Id: result.insertId };
     } catch (error) {
       if (error instanceof createHttpError.HttpError) {
         throw error;
@@ -149,7 +151,7 @@ class UserRepository {
         );
       }
 
-      return { id: idUser };
+      return { Id: idUser };
     } catch (error) {
       if (error instanceof createHttpError.HttpError) {
         throw error;
