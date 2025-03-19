@@ -184,6 +184,252 @@ const setupRoutes = (app, logger) => {
     }
   );
 
+  
+  // ========== ANGGOTA ROUTES ==============
+
+  app.patch("/anggota/:idAnggota/update", authMiddleware, async (req, res) => {
+    try {
+      const { dataAnggotaController } = req.app.locals.controllers;
+      await dataAnggotaController.update(req, res);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+  
+  app.delete("/anggota/:idAnggota/delete", authMiddleware, async (req, res) => {
+    try {
+      const { dataAnggotaController } = req.app.locals.controllers;
+      await dataAnggotaController.deleteOne(req, res);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+  
+  app.post("/anggota/add", authMiddleware, async (req, res) => {
+    try {
+      const { dataAnggotaController } = req.app.locals.controllers;
+      await dataAnggotaController.add(req, res);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+  
+  app.get("/anggota/getTotal", authMiddleware, async (req, res) => {
+    try {
+      const { dataAnggotaController } = req.app.locals.controllers;
+      await dataAnggotaController.getTotal(req, res);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+  
+  app.post("/anggota/delete", authMiddleware, async (req, res) => {
+    try {
+      const { dataAnggotaController } = req.app.locals.controllers;
+      await dataAnggotaController.deleteBulk(req, res);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+  
+  app.get("/anggota/:idAnggota", authMiddleware, async (req, res) => {
+    try {
+      const { dataAnggotaController } = req.app.locals.controllers;
+      await dataAnggotaController.findOne(req, res);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+  
+  app.get("/anggota", authMiddleware, async (req, res) => {
+    try {
+      const { dataAnggotaController } = req.app.locals.controllers;
+      if (req.query.idKeluarga) {
+        await dataAnggotaController.findAllWithIdKeluarga(req, res);
+      } else {
+        await dataAnggotaController.findAll(req, res);
+      }
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ========== KELUARGA ROUTES ============
+
+  app.get("/keluarga/getTotal", authMiddleware, async (req, res) => {
+    try {
+      const { dataKeluargaController } = req.app.locals.controllers;
+      const { idWilayah, idLingkungan } = req.query;
+  
+      if (idWilayah || idLingkungan) {
+        await dataKeluargaController.getTotalWithFilter(req, res);
+      } else {
+        await dataKeluargaController.getTotal(req, res);
+      }
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+  
+  app.post("/keluarga/add", authMiddleware, async (req, res) => {
+    try {
+      const { dataKeluargaController } = req.app.locals.controllers;
+      await dataKeluargaController.add(req, res);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+  
+  app.patch("/keluarga/:idKeluarga/update", authMiddleware, async (req, res) => {
+    try {
+      const { dataKeluargaController } = req.app.locals.controllers;
+      await dataKeluargaController.update(req, res);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+  
+  app.patch("/keluarga/:idKeluarga/delete", authMiddleware, async (req, res) => {
+    try {
+      const { dataKeluargaController } = req.app.locals.controllers;
+      await dataKeluargaController.deleteOne(req, res);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+  
+  app.get("/keluarga/:idKeluarga", authMiddleware, async (req, res) => {
+    try {
+      const { dataKeluargaController } = req.app.locals.controllers;
+      await dataKeluargaController.findOne(req, res);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ============ HISTORY ===========
+  app.post("/history/add", authMiddleware, async (req, res) => {
+    try {
+      const { transactionHistoryController } = req.app.locals.controllers;
+      await transactionHistoryController.add(req, res);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+  
+  app.post("/history/addIuran", authMiddleware, async (req, res) => {
+    try {
+      const { transactionHistoryController } = req.app.locals.controllers;
+      await transactionHistoryController.addBatch(req, res);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+  
+  app.get("/history/getTotalIncome", authMiddleware, async (req, res) => {
+    try {
+      const { transactionHistoryController } = req.app.locals.controllers;
+      await transactionHistoryController.getTotalIncome(req, res);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+  
+  app.get("/history/getTotalOutcome", authMiddleware, async (req, res) => {
+    try {
+      const { transactionHistoryController } = req.app.locals.controllers;
+      await transactionHistoryController.getTotalOutcome(req, res);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+  
+  app.get("/history", authMiddleware, async (req, res) => {
+    try {
+      const { transactionHistoryController } = req.app.locals.controllers;
+      const { idKeluarga } = req.query;
+      if (idKeluarga) {
+        await transactionHistoryController.findAllWithIdKeluarga(req, res);
+      } else {
+        await transactionHistoryController.findAll(req, res);
+      }
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+  
+  app.get("/historyByGroup", authMiddleware, async (req, res) => {
+    try {
+      const { transactionHistoryController } = req.app.locals.controllers;
+      await transactionHistoryController.findByGroup(req, res);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+  
+  app.get("/historyWithContext", authMiddleware, async (req, res) => {
+    try {
+      const { transactionHistoryController } = req.app.locals.controllers;
+      await transactionHistoryController.findAllWithKeluargaContext(req, res);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+  
+  app.get("/historyWithTimeFilter", authMiddleware, async (req, res) => {
+    try {
+      const { transactionHistoryController } = req.app.locals.controllers;
+      await transactionHistoryController.findAllHistoryWithTimeFilter(req, res);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+  
+  app.get("/historySetoran", authMiddleware, async (req, res) => {
+    try {
+      const { transactionHistoryController } = req.app.locals.controllers;
+      await transactionHistoryController.findAllSetoran(req, res);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+  
+  app.patch("/history/:idTh/update", authMiddleware, async (req, res) => {
+    try {
+      const { transactionHistoryController } = req.app.locals.controllers;
+      await transactionHistoryController.update(req, res);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+  
+  app.delete("/history/:idTh/delete", authMiddleware, async (req, res) => {
+    try {
+      const { transactionHistoryController } = req.app.locals.controllers;
+      await transactionHistoryController.deleteOne(req, res);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+  
+  app.get("/history/:idTh", authMiddleware, async (req, res) => {
+    try {
+      const { transactionHistoryController } = req.app.locals.controllers;
+      await transactionHistoryController.findOne(req, res);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+  
+  app.get("/keluarga", authMiddleware, async (req, res) => {
+    try {
+      const { dataKeluargaController } = req.app.locals.controllers;
+      await dataKeluargaController.findAll(req, res);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   // ========== STATIC FILE ==============
   app.use("/uploads", express.static("uploads"));
 
