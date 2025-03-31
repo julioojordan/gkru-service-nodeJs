@@ -3,7 +3,7 @@ const createHttpError = require("http-errors");
 class DataAnggotaRepository {
   constructor() {}
 
-  async getTotalAnggota(connection) {
+  async getTotal(connection) {
     try {
       const sql = `
         SELECT COUNT(*) AS total
@@ -28,11 +28,11 @@ class DataAnggotaRepository {
     }
   }
 
-  async addAnggota(connection, requestBody) {
-    return DataAnggotaRepository.addAnggota(connection, requestBody);
+  async add(requestBody, connection) {
+    return DataAnggotaRepository.addAnggota(requestBody, connection);
   }
 
-  static async addAnggota(connection, requestBody) {
+  static async addAnggota(requestBody, connection) {
     try {
       const sql = `
         INSERT INTO data_anggota(nama_lengkap, tanggal_lahir, tanggal_baptis, keterangan, status, jenis_kelamin, no_telp)
@@ -45,8 +45,8 @@ class DataAnggotaRepository {
         requestBody.tanggalBaptis,
         requestBody.keterangan,
         requestBody.status,
-        requestBody.jenisKelamin,
-        requestBody.noTelp,
+        requestBody.jenisKelamin ?? "",
+        requestBody.noTelp ?? "",
       ]);
 
       const lastInsertId = result.insertId;
@@ -57,15 +57,18 @@ class DataAnggotaRepository {
       `;
 
       await connection.execute(sqlRel, [
-        requestBody.idKeluarga,
+        requestBody.idKeluarga ?? null,
         lastInsertId,
         requestBody.hubungan,
       ]);
 
       return {
         Id: lastInsertId,
-        NamaLengkap: requestBody.NamaLengkap,
-        Keterangan: requestBody.Keterangan,
+        NamaLengkap: requestBody.namaLengkap,
+        Keterangan: requestBody.keterangan,
+        TanggalLahir: requestBody.tanggalLahir,
+        TanggalBaptis: requestBody.tanggalBaptis,
+        JenisKelamin: requestBody.jenisKelamin ?? "",
       };
     } catch (error) {
       throw createHttpError(
@@ -75,7 +78,7 @@ class DataAnggotaRepository {
     }
   }
 
-  async findOne(connection, idAnggota) {
+  async findOne(idAnggota, connection) {
     try {
       const sql = `
         SELECT a.id, a.nama_lengkap, a.tanggal_lahir, a.tanggal_baptis, a.keterangan, 
@@ -125,7 +128,7 @@ class DataAnggotaRepository {
     }
   }
 
-  async findAll(connection, filters) {
+  async findAll(filters, connection) {
     try {
       let sql = `
         SELECT a.id, a.nama_lengkap, a.tanggal_lahir, a.tanggal_baptis, a.keterangan, 
@@ -182,7 +185,7 @@ class DataAnggotaRepository {
     }
   }
 
-  async findAllWithIdKeluarga(connection, filters) {
+  async findAllWithIdKeluarga(filters, connection) {
     try {
       let sql = `
         SELECT a.id, a.nama_lengkap, a.tanggal_lahir, a.tanggal_baptis, a.keterangan, 
@@ -217,7 +220,24 @@ class DataAnggotaRepository {
       }
 
       const [rows] = await connection.execute(sql, args);
-      return rows;
+      return rows.map((row) => ({
+        Id: row.id,
+        NamaLengkap: row.nama_lengkap,
+        TanggalLahir: row.tanggal_lahir,
+        TanggalBaptis: row.tanggal_baptis,
+        Keterangan: row.keterangan,
+        Status: row.status,
+        JenisKelamin: row.jenis_kelamin,
+        NoTelp: row.no_telp,
+        IdKeluarga: row.id_keluarga,
+        Hubungan: row.hubungan,
+        IdWilayah: row.id_wilayah,
+        IdLingkungan: row.id_lingkungan,
+        KodeLingkungan: row.kode_lingkungan,
+        NamaLingkungan: row.nama_lingkungan,
+        KodeWilayah: row.kode_wilayah,
+        NamaWilayah: row.nama_wilayah,
+      }));
     } catch (error) {
       throw createHttpError(
         500,
@@ -290,6 +310,7 @@ class DataAnggotaRepository {
 
       // Jika dari update bukan delete, update keterangan anggota lama menjadi "Anggota"
       if (idAnggota) {
+        console.log('Masuk Sini');
         await connection.execute(
           "UPDATE data_anggota SET keterangan = 'Anggota' WHERE id = ?",
           [idAnggota]
@@ -315,7 +336,7 @@ class DataAnggotaRepository {
     }
   }
 
-  async updateAnggota(idAnggota, data, connection) {
+  async update(idAnggota, data, connection) {
     try {
       const updates = [];
       const params = [];
@@ -365,7 +386,7 @@ class DataAnggotaRepository {
 
       // Jika anggota meninggal dan dia kepala keluarga, update kepala keluarga baru
       if (data.status === "MENINGGAL" && data.isKepalaKeluarga) {
-        await updateKepalaKeluarga(data.idKeluarga, idAnggota, connection);
+        await this.updateKepalaKeluarga(data.idKeluarga, idAnggota, connection);
       }
 
       return {
@@ -394,15 +415,27 @@ class DataAnggotaRepository {
       const sqlUpdateRelasi = `UPDATE keluarga_anggota_rel SET hubungan = ? WHERE id_anggota = ?`;
 
       // Update anggota baru menjadi "Kepala Keluarga"
-      await connection.execute(sqlUpdateAnggota, ["Kepala Keluarga", data.id]);
-      await connection.execute(sqlUpdateRelasi, ["Kepala Keluarga", data.id]);
+      await connection.execute(sqlUpdateAnggota, [
+        "Kepala Keluarga",
+        data.idKepalaKeluarga,
+      ]);
+      await connection.execute(sqlUpdateRelasi, [
+        "Kepala Keluarga",
+        data.idKepalaKeluarga,
+      ]);
 
       // Update anggota lama menjadi "Anggota"
-      await connection.execute(sqlUpdateAnggota, ["Anggota", data.oldId]);
-      await connection.execute(sqlUpdateRelasi, ["Anggota", data.oldId]);
+      await connection.execute(sqlUpdateAnggota, [
+        "Anggota",
+        data.oldIdKepalaKeluarga,
+      ]);
+      await connection.execute(sqlUpdateRelasi, [
+        "Anggota",
+        data.oldIdKepalaKeluarga,
+      ]);
 
       return {
-        Id: data.id,
+        Id: data.idKepalaKeluarga,
         Keterangan: "Kepala Keluarga",
       };
     } catch (error) {
@@ -437,7 +470,7 @@ class DataAnggotaRepository {
 
       // Step 3: Jika yang dihapus adalah Kepala Keluarga, update Kepala Keluarga baru
       if (hubungan === "Kepala Keluarga") {
-        await updateKepalaKeluarga(idKeluarga, null, connection);
+        await this.updateKepalaKeluarga(idKeluarga, null, connection);
       }
 
       // Step 4: Hapus data dari `data_anggota`

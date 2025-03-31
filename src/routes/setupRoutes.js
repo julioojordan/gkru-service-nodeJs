@@ -307,8 +307,17 @@ const setupRoutes = (app, logger) => {
     }
   });
 
+  app.get("/keluarga", authMiddleware, async (req, res) => {
+    try {
+      const { dataKeluargaController } = req.app.locals.controllers;
+      await dataKeluargaController.findAll(req, res);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   // ============ HISTORY ===========
-  app.post("/history/add", authMiddleware, async (req, res) => {
+  app.post("/history/add", authMiddleware, async (req, res) => { //TO DO Belum ditest
     try {
       const { transactionHistoryController } = req.app.locals.controllers;
       await transactionHistoryController.add(req, res);
@@ -317,7 +326,7 @@ const setupRoutes = (app, logger) => {
     }
   });
   
-  app.post("/history/addIuran", authMiddleware, async (req, res) => {
+  app.post("/history/addIuran", authMiddleware, async (req, res) => {  //TO DO Belum ditest
     try {
       const { transactionHistoryController } = req.app.locals.controllers;
       await transactionHistoryController.addBatch(req, res);
@@ -385,7 +394,7 @@ const setupRoutes = (app, logger) => {
     }
   });
   
-  app.get("/historySetoran", authMiddleware, async (req, res) => {
+  app.get("/historySetoran", authMiddleware, async (req, res) => { //TO DO WIP
     try {
       const { transactionHistoryController } = req.app.locals.controllers;
       await transactionHistoryController.findAllSetoran(req, res);
@@ -394,7 +403,7 @@ const setupRoutes = (app, logger) => {
     }
   });
   
-  app.patch("/history/:idTh/update", authMiddleware, async (req, res) => {
+  app.patch("/history/:idTh/update", authMiddleware, async (req, res) => {  //TO DO Belum ditest
     try {
       const { transactionHistoryController } = req.app.locals.controllers;
       await transactionHistoryController.update(req, res);
@@ -403,7 +412,7 @@ const setupRoutes = (app, logger) => {
     }
   });
   
-  app.delete("/history/:idTh/delete", authMiddleware, async (req, res) => {
+  app.delete("/history/:idTh/delete", authMiddleware, async (req, res) => {  //TO DO Belum ditest
     try {
       const { transactionHistoryController } = req.app.locals.controllers;
       await transactionHistoryController.deleteOne(req, res);
@@ -416,15 +425,6 @@ const setupRoutes = (app, logger) => {
     try {
       const { transactionHistoryController } = req.app.locals.controllers;
       await transactionHistoryController.findOne(req, res);
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
-  });
-  
-  app.get("/keluarga", authMiddleware, async (req, res) => {
-    try {
-      const { dataKeluargaController } = req.app.locals.controllers;
-      await dataKeluargaController.findAll(req, res);
     } catch (err) {
       res.status(500).json({ error: err.message });
     }

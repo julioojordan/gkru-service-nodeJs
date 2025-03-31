@@ -20,7 +20,19 @@ class DataAnggotaController {
     async findAllWithIdKeluarga(req, res) {
       const logger = req.app.locals.logger;
       try {
-        const dataAnggota = await this.dataAnggotaService.findAllWithIdKeluarga();
+        const dataAnggota = await this.dataAnggotaService.findAllWithIdKeluarga(req.query);
+        logger.info("Fetching all data Anggota sukses");
+        res.json({ code: 200, status: "Ok", data: dataAnggota });
+      } catch (err) {
+        logger.error("Error fetching all data Anggota", { error: err.message });
+        return handleError(res, logger, err);
+      }
+    }
+
+    async findAll(req, res) {
+      const logger = req.app.locals.logger;
+      try {
+        const dataAnggota = await this.dataAnggotaService.findAll(req.query);
         logger.info("Fetching all data Anggota sukses");
         res.json({ code: 200, status: "Ok", data: dataAnggota });
       } catch (err) {

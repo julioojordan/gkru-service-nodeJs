@@ -70,6 +70,11 @@ class DataKeluargaRepository {
           Id: dataKeluargaRaw.id_lingkungan,
           KodeLingkungan: dataKeluargaRaw.kode_lingkungan,
           NamaLingkungan: dataKeluargaRaw.nama_lingkungan,
+          Wilayah: {
+            Id: dataKeluargaRaw.id_wilayah,
+            KodeWilayah: dataKeluargaRaw.kode_wilayah,
+            NamaWilayah: dataKeluargaRaw.nama_wilayah,
+          },
         },
         Nomor: dataKeluargaRaw.nomor,
         KepalaKeluarga: kepalaKeluarga,
@@ -124,7 +129,7 @@ class DataKeluargaRepository {
       const [rows] = await connection.execute(sql, params);
 
       if (rows.length === 0) {
-        return [];
+        return null;
       }
 
       const dataKeluargaList = [];
@@ -177,6 +182,11 @@ class DataKeluargaRepository {
             Id: dataKeluargaRaw.id_lingkungan,
             KodeLingkungan: dataKeluargaRaw.kode_lingkungan,
             NamaLingkungan: dataKeluargaRaw.nama_lingkungan,
+            Wilayah: {
+              Id: dataKeluargaRaw.id_wilayah,
+              KodeWilayah: dataKeluargaRaw.kode_wilayah,
+              NamaWilayah: dataKeluargaRaw.nama_wilayah,
+            },
           },
           Nomor: dataKeluargaRaw.nomor,
           KepalaKeluarga: kepalaKeluarga,
@@ -198,6 +208,7 @@ class DataKeluargaRepository {
       );
     }
   }
+  
 
   async getTotalWithFilter(filters = {}, connection) {
     try {
@@ -303,6 +314,9 @@ class DataKeluargaRepository {
         NomorKKGereja: nomorKKGereja,
       };
     } catch (error) {
+      if (error instanceof createHttpError.HttpError) {
+        throw error;
+      }
       throw createHttpError(
         500,
         `Gagal menambahkan data keluarga: ${error.message}`
@@ -310,7 +324,45 @@ class DataKeluargaRepository {
     }
   }
 
-  async updateDataKeluarga(idKeluarga, request, connection) {
+  async findKeluargaAnggotaRel(idKeluarga, connection) {
+    try {
+      const sqlQuery = `
+            SELECT 
+                a.id, a.hubungan, a.id_anggota, 
+                b.nama_lengkap, b.tanggal_lahir, b.tanggal_baptis, 
+                b.keterangan, b.status, b.jenis_kelamin, b.no_telp 
+            FROM keluarga_anggota_rel a 
+            JOIN data_anggota b ON a.id_anggota = b.id 
+            WHERE a.id_keluarga = ?
+        `;
+
+      const [rows] = await connection.execute(sqlQuery, [idKeluarga]);
+
+      if (rows.length === 0) {
+        throw createHttpError(404, "Data Tidak Ditemukan");
+      }
+
+      return rows.map((row) => ({
+        Id: row.id,
+        Hubungan: row.hubungan,
+        IdAnggota: row.id_anggota,
+        NamaLengkap: row.nama_lengkap,
+        TanggalLahir: row.tanggal_lahir,
+        TanggalBaptis: row.tanggal_baptis,
+        Keterangan: row.keterangan,
+        Status: row.status,
+        JenisKelamin: row.jenis_kelamin,
+        NoTelp: row.no_telp,
+      }));
+    } catch (error) {
+      throw createHttpError(
+        500,
+        `Gagal mengambil data anggota keluarga: ${error.message}`
+      );
+    }
+  }
+
+  async update(idKeluarga, request, connection) {
     const {
       idWilayah,
       idLingkungan,
@@ -367,7 +419,10 @@ class DataKeluargaRepository {
       // 2. Eksekusi query update
       const [updateResult] = await connection.execute(sqlUpdate, params);
       if (updateResult.affectedRows === 0) {
-        throw createHttpError(404, "Gagal untuk update data keluarga : Data keluarga tidak ditemukan");
+        throw createHttpError(
+          404,
+          "Gagal untuk update data keluarga : Data keluarga tidak ditemukan"
+        );
       }
 
       // 3. Update relasi kepala keluarga jika ID berubah
@@ -378,14 +433,14 @@ class DataKeluargaRepository {
 
       if (isKepalaKeluargaUpdated) {
         await DataAnggotaRepository.updateKeteranganAnggota(
-          idKepalaKeluarga,
+          request,
           connection
         );
       }
 
       // 5. Ambil data anggota keluarga setelah update // TODO ini belum dibuat method nya
       const anggotaKeluarga =
-        await this.repositories.DataAnggotaKeluargaRelRepository.findKeluargaAnggotaRel(
+        await this.findKeluargaAnggotaRel(
           idKeluarga,
           connection
         );
@@ -395,17 +450,17 @@ class DataKeluargaRepository {
 
       for (const anggotaRel of anggotaKeluarga) {
         const anggotaObj = {
-          Id: anggotaRel.idAnggota,
-          NamaLengkap: anggotaRel.namaLengkap,
-          TanggalLahir: anggotaRel.tanggalLahir,
-          TanggalBaptis: anggotaRel.tanggalBaptis,
-          Keterangan: anggotaRel.keterangan,
-          Status: anggotaRel.status,
-          JenisKelamin: anggotaRel.jenisKelamin,
-          NoTelp: anggotaRel.noTelp,
+          Id: anggotaRel.IdAnggota,
+          NamaLengkap: anggotaRel.NamaLengkap,
+          TanggalLahir: anggotaRel.TanggalLahir,
+          TanggalBaptis: anggotaRel.TanggalBaptis,
+          Keterangan: anggotaRel.Keterangan,
+          Status: anggotaRel.Status,
+          JenisKelamin: anggotaRel.JenisKelamin,
+          NoTelp: anggotaRel.NoTelp,
         };
 
-        if (anggotaRel.hubungan === "Kepala Keluarga") {
+        if (anggotaRel.Hubungan === "Kepala Keluarga") {
           kepalaKeluarga = anggotaObj;
         } else {
           anggota.push(anggotaObj);
@@ -416,7 +471,7 @@ class DataKeluargaRepository {
         Id: idKeluarga,
         IdWilayah: idWilayah,
         IdLingkungan: idLingkungan,
-        Nomor : nomor,
+        Nomor: nomor,
         KepalaKeluarga: kepalaKeluarga,
         Alamat: alamat,
         Status: status,
@@ -424,6 +479,9 @@ class DataKeluargaRepository {
         NomorKKGereja: nomorKKGereja,
       };
     } catch (error) {
+      if (error instanceof createHttpError.HttpError) {
+        throw error;
+      }
       throw createHttpError(
         500,
         `Gagal memperbarui data keluarga: ${error.message}`
@@ -466,6 +524,9 @@ class DataKeluargaRepository {
         DeletedAnggotaIds: deletedAnggotaIds,
       };
     } catch (error) {
+      if (error instanceof createHttpError.HttpError) {
+        throw error;
+      }
       throw createHttpError(
         500,
         `Gagal menghapus data keluarga: ${error.message}`

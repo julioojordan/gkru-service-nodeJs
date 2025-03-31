@@ -49,11 +49,11 @@ class TransactionHistoryService {
         }
     }
 
-    async getTotalOutcome() {
+    async getTotalOutcome(query) {
         const connection = await this.db.getConnection();
         try {
             await connection.beginTransaction();
-            const result = await this.repository.getTotalOutcome(connection);
+            const result = await this.repository.getTotalOutcome(query,connection);
             await connection.commit();
             return result;
         } catch (error) {
@@ -110,11 +110,11 @@ class TransactionHistoryService {
     }
 
     async findAllHistoryWithTimeFilter(query) {
-        const {tahun, bulan, idLingkungan, idWilayah,} = query
+        const {tahun, bulan, lingkungan, wilayah,} = query
         const connection = await this.db.getConnection();
         try {
             await connection.beginTransaction();
-            const result = await this.repository.findAllHistoryWithTimeFilter(tahun, bulan, idLingkungan, idWilayah, connection);
+            const result = await this.repository.findAllHistoryWithTimeFilter(tahun, bulan, lingkungan, wilayah, connection);
             await connection.commit();
             return result;
         } catch (error) {

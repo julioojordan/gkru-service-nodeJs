@@ -19,11 +19,11 @@ class DataKeluargaService {
         }
     }
 
-    async findAllWith() {
+    async findAll(query) {
         const connection = await this.db.getConnection();
         try {
             await connection.beginTransaction();
-            const result = await this.repository.findAllWith(connection);
+            const result = await this.repository.findAll(query, connection);
             await connection.commit();
             return result;
         } catch (error) {
@@ -94,11 +94,11 @@ class DataKeluargaService {
         }
     }
 
-    async getTotalWithFilter() {
+    async getTotalWithFilter(query) {
         const connection = await this.db.getConnection();
         try {
             await connection.beginTransaction();
-            const result = await this.repository.getTotalWithFilter(connection);
+            const result = await this.repository.getTotalWithFilter(query, connection);
             await connection.commit();
             return result;
         } catch (error) {

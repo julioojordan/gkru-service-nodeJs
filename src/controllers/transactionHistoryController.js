@@ -51,9 +51,9 @@ class TransactionHistoryController {
     const logger = req.app.locals.logger;
     try {
       const transactionHistory = await this.transactionHistoryService.getTotalOutcome(
-        req.params.idAnggota
+        req.query
       );
-      logger.info("Fetching total outcome sukses", { params: req.params });
+      logger.info("Fetching total outcome sukses", { params: req.query });
       res.json({ code: 200, status: "Ok", data: transactionHistory });
     } catch (err) {
       logger.error("Error fetching total outcome", { error: err.message });
@@ -79,12 +79,12 @@ class TransactionHistoryController {
     const logger = req.app.locals.logger;
     try {
       const transactionHistory = await this.transactionHistoryService.findByGroup(
-        req.params.idGroup
+        req.query.idGroup
       );
-      logger.info("Fetching transaction History sukses", { params: req.params.idGroup });
+      logger.info("Fetching transaction History by Group sukses", { params: req.query.idGroup });
       res.json({ code: 200, status: "Ok", data: transactionHistory });
     } catch (err) {
-      logger.error("Error fetching transaction History", { error: err.message });
+      logger.error("Error fetching transaction History by Group", { error: err.message });
       return handleError(res, logger, err);
     }
   }
@@ -94,10 +94,10 @@ class TransactionHistoryController {
     try {
       const transactionHistory =
         await this.transactionHistoryService.findAllWithKeluargaContext(req.query.tahun);
-      logger.info("Fetching all transaction History sukses");
+      logger.info("Fetching all transaction History With Keluarga Context sukses");
       res.json({ code: 200, status: "Ok", data: transactionHistory });
     } catch (err) {
-      logger.error("Error fetching all transaction History", { error: err.message });
+      logger.error("Error fetching all transaction With Keluarga Context History", { error: err.message });
       return handleError(res, logger, err);
     }
   }
@@ -107,10 +107,10 @@ class TransactionHistoryController {
     try {
       const transactionHistory =
         await this.transactionHistoryService.findAllHistoryWithTimeFilter(req.query);
-      logger.info("Fetching all transaction History sukses");
+      logger.info("Fetching all transaction History With Time Filter sukses");
       res.json({ code: 200, status: "Ok", data: transactionHistory });
     } catch (err) {
-      logger.error("Error fetching all transaction History", { error: err.message });
+      logger.error("Error fetching all transaction History With Time Filter", { error: err.message });
       return handleError(res, logger, err);
     }
   }

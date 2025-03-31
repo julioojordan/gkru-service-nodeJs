@@ -9,7 +9,7 @@ const {
 const createHttpError = require("http-errors");
 const saveFile = require("../helpers/saveFileHelper");
 
-class UserRepository {
+class TransactionHistoryRepository {
   constructor() {}
 
   async getTotalIncome(req, connection) {
@@ -199,6 +199,7 @@ class UserRepository {
         ORDER BY a.created_date ASC`;
 
       const [rows] = await connection.execute(sql);
+      console.log({rows});
 
       if (rows.length === 0) {
         throw createHttpError(404, "Data Tidak Ditemukan");
@@ -208,6 +209,7 @@ class UserRepository {
       rows.forEach(row => {
         results.push(mapToThFinal(row));
       });
+      return results;
     } catch (error) {
       if (error instanceof createHttpError.HttpError) {
         throw error;
@@ -216,7 +218,8 @@ class UserRepository {
     }
   }
 
-  async findAllWithKeluargaContext(connection, tahun) {
+  async findAllWithKeluargaContext(tahun, connection) {
+    let year = 0;
     try {
       const sql = `
         SELECT 
@@ -253,11 +256,15 @@ class UserRepository {
         WHERE YEAR(a.created_date) = ?
         ORDER BY a.created_date ASC;
       `;
+      if (tahun){
+        year = tahun
+      }
 
-      const [rows] = await connection.execute(sql, [tahun]);
+      const [rows] = await connection.execute(sql, [year]);
 
       if (rows.length === 0) {
-        throw createHttpError(404, "Data Tidak Ditemukan");
+        // throw createHttpError(404, "Data Tidak Ditemukan");
+        return null
       }
 
       // Mapping hasil query
@@ -810,3 +817,5 @@ class UserRepository {
   }
 
 }
+
+module.exports = TransactionHistoryRepository;

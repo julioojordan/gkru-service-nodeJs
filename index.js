@@ -2,9 +2,9 @@ const express = require("express");
 const mysql = require("mysql2/promise");
 const winston = require("winston");
 const { setupRoutes } = require("./src/routes/setupRoutes");
-const { DataWilayahRepository, UserRepository, DataLingkunganRepository } = require("./src/repositories");
-const { DataWilayahService, UserService, DataLingkunganService } = require("./src/services");
-const { DataWilayahController, UserController, DataLingkunganController } = require("./src/controllers");
+const { DataWilayahRepository, UserRepository, DataLingkunganRepository, TransactionHistoryRepository, DataKeluargaRepository, DataAnggotaRepository } = require("./src/repositories");
+const { DataWilayahService, UserService, DataLingkunganService, TransactionHistoryService, DataKeluargaService, DataAnggotaService } = require("./src/services");
+const { DataWilayahController, UserController, DataLingkunganController, TransactionHistoryController, DataKeluargaController, DataAnggotaController } = require("./src/controllers");
 const fs = require("fs");
 const path = require("path");
 require("dotenv").config();
@@ -101,8 +101,29 @@ async function startServer() {
       req.app.locals.db
     );
     const userController = new UserController(userService);
+
+    const transactionHistoryRepository = new TransactionHistoryRepository();
+    const transactionHistoryService = new TransactionHistoryService(
+      transactionHistoryRepository,
+      req.app.locals.db
+    );
+    const transactionHistoryController = new TransactionHistoryController(transactionHistoryService);
+
+    const dataKeluargaRepository = new DataKeluargaRepository();
+    const dataKeluargaService = new DataKeluargaService(
+      dataKeluargaRepository,
+      req.app.locals.db
+    );
+    const dataKeluargaController = new DataKeluargaController(dataKeluargaService);
+
+    const dataAnggotaRepository = new DataAnggotaRepository();
+    const dataAnggotaService = new DataAnggotaService(
+      dataAnggotaRepository,
+      req.app.locals.db
+    );
+    const dataAnggotaController = new DataAnggotaController(dataAnggotaService);
     
-    req.app.locals.controllers = { dataWilayahController, userController, dataLingkunganController };
+    req.app.locals.controllers = { dataWilayahController, userController, dataLingkunganController, transactionHistoryController, dataKeluargaController, dataAnggotaController };
     next();
   });
 

@@ -19,11 +19,26 @@ class DataAnggotaService {
         }
     }
 
-    async findAllWithIdKeluarga() {
+    async findAllWithIdKeluarga(params) {
         const connection = await this.db.getConnection();
         try {
             await connection.beginTransaction();
-            const result = await this.repository.findAllWithIdKeluarga(connection);
+            const result = await this.repository.findAllWithIdKeluarga(params, connection);
+            await connection.commit();
+            return result;
+        } catch (error) {
+            await connection.rollback();
+            throw error;
+        } finally {
+            connection.release();
+        }
+    }
+
+    async findAll(params) {
+        const connection = await this.db.getConnection();
+        try {
+            await connection.beginTransaction();
+            const result = await this.repository.findAll(params, connection);
             await connection.commit();
             return result;
         } catch (error) {

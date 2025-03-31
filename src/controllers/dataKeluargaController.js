@@ -20,7 +20,7 @@ class DataKeluargaController {
     async findAll(req, res) {
       const logger = req.app.locals.logger;
       try {
-        const dataKeluarga = await this.dataKeluargaService.findAll();
+        const dataKeluarga = await this.dataKeluargaService.findAll(req.query);
         logger.info("Fetching all data Keluarga sukses");
         res.json({ code: 200, status: "Ok", data: dataKeluarga });
       } catch (err) {
@@ -80,7 +80,7 @@ class DataKeluargaController {
     async getTotalWithFilter(req, res) {
         const logger = req.app.locals.logger;
         try {
-          const total = await this.dataKeluargaService.getTotalWithFilter();
+          const total = await this.dataKeluargaService.getTotalWithFilter(req.query);
           logger.info("Fetching total Keluarga sukses");
           res.json({ code: 200, status: "Ok", data: total });
         } catch (err) {
