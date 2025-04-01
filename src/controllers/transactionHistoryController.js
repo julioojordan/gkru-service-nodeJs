@@ -5,11 +5,12 @@ class TransactionHistoryController {
     this.transactionHistoryService = transactionHistoryService;
   }
 
-  async add(req, res) {
+  async addSantunan(req, res) {
     const logger = req.app.locals.logger;
     try {
-      const transactionHistory = await this.transactionHistoryService.add(
-        req.body
+      const transactionHistory = await this.transactionHistoryService.addSantunan(
+        req.body,
+        req.file
       );
       logger.info("Adding transaction History sukses", { data: req.body });
       res.json({ code: 200, status: "Ok", data: transactionHistory });
@@ -23,7 +24,8 @@ class TransactionHistoryController {
     const logger = req.app.locals.logger;
     try {
       const transactionHistory = await this.transactionHistoryService.addBatch(
-        req.body
+        req.body,
+        req.file
       );
       logger.info("Adding transaction History sukses", { data: req.body });
       res.json({ code: 200, status: "Ok", data: transactionHistory });

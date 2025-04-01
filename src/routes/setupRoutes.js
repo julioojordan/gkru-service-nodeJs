@@ -1,8 +1,10 @@
 const express = require("express");
 const cors = require("cors");
 const authMiddleware = require("../middlewares/authMiddleware");
+const multer = require("multer");
 
 const setupRoutes = (app, logger) => {
+  const upload = multer();
   // =========== SETUP MIDDLEWARE ===============
   app.use(cors()); // CORS middleware
 
@@ -171,20 +173,15 @@ const setupRoutes = (app, logger) => {
     }
   });
 
-  app.get(
-    "/lingkunganWithTotalKeluarga",
-    authMiddleware,
-    async (req, res) => {
-      try {
-        const { dataLingkunganController } = req.app.locals.controllers;
-        await dataLingkunganController.findAllWithTotalKeluarga(req, res);
-      } catch (err) {
-        res.status(500).json({ error: err.message });
-      }
+  app.get("/lingkunganWithTotalKeluarga", authMiddleware, async (req, res) => {
+    try {
+      const { dataLingkunganController } = req.app.locals.controllers;
+      await dataLingkunganController.findAllWithTotalKeluarga(req, res);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
     }
-  );
+  });
 
-  
   // ========== ANGGOTA ROUTES ==============
 
   app.patch("/anggota/:idAnggota/update", authMiddleware, async (req, res) => {
@@ -195,7 +192,7 @@ const setupRoutes = (app, logger) => {
       res.status(500).json({ error: err.message });
     }
   });
-  
+
   app.delete("/anggota/:idAnggota/delete", authMiddleware, async (req, res) => {
     try {
       const { dataAnggotaController } = req.app.locals.controllers;
@@ -204,7 +201,7 @@ const setupRoutes = (app, logger) => {
       res.status(500).json({ error: err.message });
     }
   });
-  
+
   app.post("/anggota/add", authMiddleware, async (req, res) => {
     try {
       const { dataAnggotaController } = req.app.locals.controllers;
@@ -213,7 +210,7 @@ const setupRoutes = (app, logger) => {
       res.status(500).json({ error: err.message });
     }
   });
-  
+
   app.get("/anggota/getTotal", authMiddleware, async (req, res) => {
     try {
       const { dataAnggotaController } = req.app.locals.controllers;
@@ -222,7 +219,7 @@ const setupRoutes = (app, logger) => {
       res.status(500).json({ error: err.message });
     }
   });
-  
+
   app.post("/anggota/delete", authMiddleware, async (req, res) => {
     try {
       const { dataAnggotaController } = req.app.locals.controllers;
@@ -231,7 +228,7 @@ const setupRoutes = (app, logger) => {
       res.status(500).json({ error: err.message });
     }
   });
-  
+
   app.get("/anggota/:idAnggota", authMiddleware, async (req, res) => {
     try {
       const { dataAnggotaController } = req.app.locals.controllers;
@@ -240,7 +237,7 @@ const setupRoutes = (app, logger) => {
       res.status(500).json({ error: err.message });
     }
   });
-  
+
   app.get("/anggota", authMiddleware, async (req, res) => {
     try {
       const { dataAnggotaController } = req.app.locals.controllers;
@@ -260,7 +257,7 @@ const setupRoutes = (app, logger) => {
     try {
       const { dataKeluargaController } = req.app.locals.controllers;
       const { idWilayah, idLingkungan } = req.query;
-  
+
       if (idWilayah || idLingkungan) {
         await dataKeluargaController.getTotalWithFilter(req, res);
       } else {
@@ -270,7 +267,7 @@ const setupRoutes = (app, logger) => {
       res.status(500).json({ error: err.message });
     }
   });
-  
+
   app.post("/keluarga/add", authMiddleware, async (req, res) => {
     try {
       const { dataKeluargaController } = req.app.locals.controllers;
@@ -279,25 +276,33 @@ const setupRoutes = (app, logger) => {
       res.status(500).json({ error: err.message });
     }
   });
-  
-  app.patch("/keluarga/:idKeluarga/update", authMiddleware, async (req, res) => {
-    try {
-      const { dataKeluargaController } = req.app.locals.controllers;
-      await dataKeluargaController.update(req, res);
-    } catch (err) {
-      res.status(500).json({ error: err.message });
+
+  app.patch(
+    "/keluarga/:idKeluarga/update",
+    authMiddleware,
+    async (req, res) => {
+      try {
+        const { dataKeluargaController } = req.app.locals.controllers;
+        await dataKeluargaController.update(req, res);
+      } catch (err) {
+        res.status(500).json({ error: err.message });
+      }
     }
-  });
-  
-  app.patch("/keluarga/:idKeluarga/delete", authMiddleware, async (req, res) => {
-    try {
-      const { dataKeluargaController } = req.app.locals.controllers;
-      await dataKeluargaController.deleteOne(req, res);
-    } catch (err) {
-      res.status(500).json({ error: err.message });
+  );
+
+  app.patch(
+    "/keluarga/:idKeluarga/delete",
+    authMiddleware,
+    async (req, res) => {
+      try {
+        const { dataKeluargaController } = req.app.locals.controllers;
+        await dataKeluargaController.deleteOne(req, res);
+      } catch (err) {
+        res.status(500).json({ error: err.message });
+      }
     }
-  });
-  
+  );
+
   app.get("/keluarga/:idKeluarga", authMiddleware, async (req, res) => {
     try {
       const { dataKeluargaController } = req.app.locals.controllers;
@@ -317,24 +322,50 @@ const setupRoutes = (app, logger) => {
   });
 
   // ============ HISTORY ===========
-  app.post("/history/add", authMiddleware, async (req, res) => { //TO DO Belum ditest
-    try {
-      const { transactionHistoryController } = req.app.locals.controllers;
-      await transactionHistoryController.add(req, res);
-    } catch (err) {
-      res.status(500).json({ error: err.message });
+  app.post(
+    "/history/add",
+    upload.single("FileBukti"),
+    authMiddleware,
+    async (req, res) => {
+      try {
+        const { transactionHistoryController } = req.app.locals.controllers;
+        if (!req.body.History) {
+          return res.status(400).json({ error: "History data is required" });
+        }
+        let parsedHistory;
+        parsedHistory = JSON.parse(req.body.History);
+        console.log({ parsedHistory });
+        req.body = parsedHistory;
+        await transactionHistoryController.addSantunan(req, res);
+      } catch (err) {
+        console.log(err);
+        res.status(500).json({ error: err.message });
+      }
     }
-  });
-  
-  app.post("/history/addIuran", authMiddleware, async (req, res) => {  //TO DO Belum ditest
-    try {
-      const { transactionHistoryController } = req.app.locals.controllers;
-      await transactionHistoryController.addBatch(req, res);
-    } catch (err) {
-      res.status(500).json({ error: err.message });
+  );
+
+  app.post(
+    "/history/addIuran",
+    upload.single("FileBukti"),
+    authMiddleware,
+    async (req, res) => {
+      try {
+        const { transactionHistoryController } = req.app.locals.controllers;
+        if (!req.body) {
+          return res.status(400).json({ error: "History data is required" });
+        }
+        let parsedHistory;
+        parsedHistory = JSON.parse(req.body.History);
+        console.log({ parsedHistory });
+        req.body = parsedHistory;
+        await transactionHistoryController.addBatch(req, res);
+      } catch (err) {
+        console.log(err);
+        res.status(500).json({ error: err.message });
+      }
     }
-  });
-  
+  );
+
   app.get("/history/getTotalIncome", authMiddleware, async (req, res) => {
     try {
       const { transactionHistoryController } = req.app.locals.controllers;
@@ -343,7 +374,7 @@ const setupRoutes = (app, logger) => {
       res.status(500).json({ error: err.message });
     }
   });
-  
+
   app.get("/history/getTotalOutcome", authMiddleware, async (req, res) => {
     try {
       const { transactionHistoryController } = req.app.locals.controllers;
@@ -352,7 +383,7 @@ const setupRoutes = (app, logger) => {
       res.status(500).json({ error: err.message });
     }
   });
-  
+
   app.get("/history", authMiddleware, async (req, res) => {
     try {
       const { transactionHistoryController } = req.app.locals.controllers;
@@ -366,7 +397,7 @@ const setupRoutes = (app, logger) => {
       res.status(500).json({ error: err.message });
     }
   });
-  
+
   app.get("/historyByGroup", authMiddleware, async (req, res) => {
     try {
       const { transactionHistoryController } = req.app.locals.controllers;
@@ -375,7 +406,7 @@ const setupRoutes = (app, logger) => {
       res.status(500).json({ error: err.message });
     }
   });
-  
+
   app.get("/historyWithContext", authMiddleware, async (req, res) => {
     try {
       const { transactionHistoryController } = req.app.locals.controllers;
@@ -384,7 +415,7 @@ const setupRoutes = (app, logger) => {
       res.status(500).json({ error: err.message });
     }
   });
-  
+
   app.get("/historyWithTimeFilter", authMiddleware, async (req, res) => {
     try {
       const { transactionHistoryController } = req.app.locals.controllers;
@@ -393,8 +424,9 @@ const setupRoutes = (app, logger) => {
       res.status(500).json({ error: err.message });
     }
   });
-  
-  app.get("/historySetoran", authMiddleware, async (req, res) => { //TO DO WIP
+
+  app.get("/historySetoran", authMiddleware, async (req, res) => {
+    //TO DO WIP
     try {
       const { transactionHistoryController } = req.app.locals.controllers;
       await transactionHistoryController.findAllSetoran(req, res);
@@ -402,8 +434,9 @@ const setupRoutes = (app, logger) => {
       res.status(500).json({ error: err.message });
     }
   });
-  
-  app.patch("/history/:idTh/update", authMiddleware, async (req, res) => {  //TO DO Belum ditest
+
+  app.patch("/history/:idTh/update", authMiddleware, async (req, res) => {
+    //TO DO Belum ditest
     try {
       const { transactionHistoryController } = req.app.locals.controllers;
       await transactionHistoryController.update(req, res);
@@ -411,8 +444,9 @@ const setupRoutes = (app, logger) => {
       res.status(500).json({ error: err.message });
     }
   });
-  
-  app.delete("/history/:idTh/delete", authMiddleware, async (req, res) => {  //TO DO Belum ditest
+
+  app.delete("/history/:idTh/delete", authMiddleware, async (req, res) => {
+    //TO DO Belum ditest
     try {
       const { transactionHistoryController } = req.app.locals.controllers;
       await transactionHistoryController.deleteOne(req, res);
@@ -420,7 +454,7 @@ const setupRoutes = (app, logger) => {
       res.status(500).json({ error: err.message });
     }
   });
-  
+
   app.get("/history/:idTh", authMiddleware, async (req, res) => {
     try {
       const { transactionHistoryController } = req.app.locals.controllers;

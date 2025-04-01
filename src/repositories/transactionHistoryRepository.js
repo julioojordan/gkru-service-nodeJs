@@ -449,7 +449,7 @@ class TransactionHistoryRepository {
       const [rows] = await connection.execute(sql, params);
 
       if (rows.length === 0) {
-        throw createHttpError(404, "Data Tidak Ditemukan");
+        return null;
       }
 
       // Mapping hasil query
@@ -552,8 +552,77 @@ class TransactionHistoryRepository {
     }
   }
 
+  // Add Iuran (Batch)
+  async addBatch(historyData, file, connection) {
+    try {
+      if (!Array.isArray(historyData) || historyData.length === 0) {
+        throw createHttpError(400, "Invalid history data");
+      }
+
+      let filePath = null;
+      let lastInsertIdAddFile = null;
+
+      if (file) {
+        filePath = await saveFile(file);
+        const [result] = await connection.execute(
+          "INSERT INTO grouped_transaksi(file) VALUES(?)",
+          [filePath]
+        );
+        lastInsertIdAddFile = result.insertId;
+      }
+
+      const sqlScript = `
+        INSERT INTO riwayat_transaksi(nominal, id_keluarga, keterangan, created_by, sub_keterangan, created_date, bulan, tahun, group_id)
+        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+      const responses = [];
+      for (const history of historyData) {
+        const {
+          Nominal,
+          IdKeluarga,
+          Keterangan,
+          CreatedBy,
+          SubKeterangan,
+          Bulan,
+          Tahun,
+        } = history;
+        const createdDate = new Date();
+
+        const [result] = await connection.execute(sqlScript, [
+          Nominal,
+          IdKeluarga,
+          Keterangan,
+          CreatedBy,
+          SubKeterangan,
+          createdDate,
+          Bulan,
+          Tahun,
+          lastInsertIdAddFile,
+        ]);
+
+        responses.push({
+          Id: result.insertId,
+          Nominal,
+          IdKeluarga,
+          Keterangan,
+          CreatorId: CreatedBy,
+          SubKeterangan,
+          CreatedDate: createdDate,
+          Group: lastInsertIdAddFile,
+        });
+      }
+
+      return responses;
+    } catch (error) {
+      if (error instanceof createHttpError.HttpError) {
+        throw error;
+      }
+      throw createHttpError(500, `Gagal menambahkan batch transaksi: ${error.message}`);
+    }
+  }
+  
   // Add Santunan
-  async addTransaction(formData, file) {
+  async addSantunan(formData, file, connection) {
     try {
       const {
         Nominal,
@@ -574,8 +643,8 @@ class TransactionHistoryRepository {
       let lastInsertIdAddFile = null;
 
       if (file) {
-        filePath = await this.saveFile(file);
-        const [result] = await db.execute(
+        filePath = await saveFile(file);
+        const [result] = await connection.execute(
           "INSERT INTO grouped_transaksi(file) VALUES(?)",
           [filePath]
         );
@@ -586,7 +655,7 @@ class TransactionHistoryRepository {
         INSERT INTO riwayat_transaksi(nominal, id_keluarga, keterangan, created_by, sub_keterangan, created_date, bulan, tahun, group_id)
         VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-      const [result] = await db.execute(sqlScript, [
+      const [result] = await connection.execute(sqlScript, [
         Nominal,
         IdKeluarga,
         Keterangan,
@@ -613,206 +682,6 @@ class TransactionHistoryRepository {
         throw error;
       }
       throw createHttpError(500, `Gagal menambahkan transaksi: ${error.message}`);
-    }
-  }
-
-  // Add Iuran (Batch)
-  async addBatchTransactions(historyData, file) {
-    try {
-      if (!Array.isArray(historyData) || historyData.length === 0) {
-        throw createHttpError(400, "Invalid history data");
-      }
-
-      let filePath = null;
-      let lastInsertIdAddFile = null;
-
-      if (file) {
-        filePath = await this.saveFile(file);
-        const [result] = await db.execute(
-          "INSERT INTO grouped_transaksi(file) VALUES(?)",
-          [filePath]
-        );
-        lastInsertIdAddFile = result.insertId;
-      }
-
-      const sqlScript = `
-        INSERT INTO riwayat_transaksi(nominal, id_keluarga, keterangan, created_by, sub_keterangan, created_date, bulan, tahun, group_id)
-        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-
-      const responses = [];
-      for (const history of historyData) {
-        const {
-          Nominal,
-          IdKeluarga,
-          Keterangan,
-          CreatedBy,
-          SubKeterangan,
-          Bulan,
-          Tahun,
-        } = history;
-        const createdDate = new Date();
-
-        const [result] = await db.execute(sqlScript, [
-          Nominal,
-          IdKeluarga,
-          Keterangan,
-          CreatedBy,
-          SubKeterangan,
-          createdDate,
-          Bulan,
-          Tahun,
-          lastInsertIdAddFile,
-        ]);
-
-        responses.push({
-          Id: result.insertId,
-          Nominal,
-          IdKeluarga,
-          Keterangan,
-          CreatorId: CreatedBy,
-          SubKeterangan,
-          CreatedDate: createdDate,
-          Group: lastInsertIdAddFile,
-        });
-      }
-
-      return responses;
-    } catch (error) {
-      if (error instanceof createHttpError.HttpError) {
-        throw error;
-      }
-      throw createHttpError(500, `Gagal menambahkan batch transaksi: ${error.message}`);
-    }
-  }// Add Santunan
-  async addTransaction(formData, file) {
-    try {
-      const {
-        Nominal,
-        IdKeluarga,
-        Keterangan,
-        CreatedBy,
-        SubKeterangan,
-        Bulan,
-        Tahun,
-      } = formData;
-
-      if (!Nominal || !IdKeluarga || !Keterangan || !CreatedBy || !Bulan || !Tahun) {
-        throw createHttpError(400, "Missing required fields");
-      }
-
-      const currentTime = new Date();
-      let filePath = null;
-      let lastInsertIdAddFile = null;
-
-      if (file) {
-        filePath = await this.saveFile(file);
-        const [result] = await db.execute(
-          "INSERT INTO grouped_transaksi(file) VALUES(?)",
-          [filePath]
-        );
-        lastInsertIdAddFile = result.insertId;
-      }
-
-      const sqlScript = `
-        INSERT INTO riwayat_transaksi(nominal, id_keluarga, keterangan, created_by, sub_keterangan, created_date, bulan, tahun, group_id)
-        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-
-      const [result] = await db.execute(sqlScript, [
-        Nominal,
-        IdKeluarga,
-        Keterangan,
-        CreatedBy,
-        SubKeterangan,
-        currentTime,
-        Bulan,
-        Tahun,
-        lastInsertIdAddFile,
-      ]);
-
-      return {
-        Id: result.insertId,
-        Nominal,
-        IdKeluarga,
-        Keterangan,
-        CreatorId: CreatedBy,
-        SubKeterangan,
-        CreatedDate: currentTime,
-        Group: lastInsertIdAddFile,
-      };
-    } catch (error) {
-      if (error instanceof createHttpError.HttpError) {
-        throw error;
-      }
-      throw createHttpError(500, `Gagal menambahkan transaksi: ${error.message}`);
-    }
-  }
-
-  // Add Iuran (Batch)
-  async addBatchTransactions(historyData, file) {
-    try {
-      if (!Array.isArray(historyData) || historyData.length === 0) {
-        throw createHttpError(400, "Invalid history data");
-      }
-
-      let filePath = null;
-      let lastInsertIdAddFile = null;
-
-      if (file) {
-        filePath = await this.saveFile(file);
-        const [result] = await db.execute(
-          "INSERT INTO grouped_transaksi(file) VALUES(?)",
-          [filePath]
-        );
-        lastInsertIdAddFile = result.insertId;
-      }
-
-      const sqlScript = `
-        INSERT INTO riwayat_transaksi(nominal, id_keluarga, keterangan, created_by, sub_keterangan, created_date, bulan, tahun, group_id)
-        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-
-      const responses = [];
-      for (const history of historyData) {
-        const {
-          Nominal,
-          IdKeluarga,
-          Keterangan,
-          CreatedBy,
-          SubKeterangan,
-          Bulan,
-          Tahun,
-        } = history;
-        const createdDate = new Date();
-
-        const [result] = await db.execute(sqlScript, [
-          Nominal,
-          IdKeluarga,
-          Keterangan,
-          CreatedBy,
-          SubKeterangan,
-          createdDate,
-          Bulan,
-          Tahun,
-          lastInsertIdAddFile,
-        ]);
-
-        responses.push({
-          Id: result.insertId,
-          Nominal,
-          IdKeluarga,
-          Keterangan,
-          CreatorId: CreatedBy,
-          SubKeterangan,
-          CreatedDate: createdDate,
-          Group: lastInsertIdAddFile,
-        });
-      }
-
-      return responses;
-    } catch (error) {
-      if (error instanceof createHttpError.HttpError) {
-        throw error;
-      }
-      throw createHttpError(500, `Gagal menambahkan batch transaksi: ${error.message}`);
     }
   }
 

@@ -4,11 +4,11 @@ class TransactionHistoryService {
         this.db = db;
     }
 
-    async add(body) {
+    async addSantunan(body, file) {
         const connection = await this.db.getConnection();
         try {
             await connection.beginTransaction();
-            const result = await this.repository.add(body, connection);
+            const result = await this.repository.addSantunan(body, file, connection);
             await connection.commit();
             return result;
         } catch (error) {
@@ -19,11 +19,11 @@ class TransactionHistoryService {
         }
     }
 
-    async addBatch(body) {
+    async addBatch(body, file) {
         const connection = await this.db.getConnection();
         try {
             await connection.beginTransaction();
-            const result = await this.repository.addBatch(body,connection);
+            const result = await this.repository.addBatch(body, file, connection);
             await connection.commit();
             return result;
         } catch (error) {
