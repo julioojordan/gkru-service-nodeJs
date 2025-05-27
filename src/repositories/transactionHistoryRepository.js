@@ -204,7 +204,8 @@ class TransactionHistoryRepository {
       console.log({rows});
 
       if (rows.length === 0) {
-        throw createHttpError(404, "Data Tidak Ditemukan");
+        // throw createHttpError(404, "Data Tidak Ditemukan");
+        return null
       }
 
       let results = [];
@@ -326,7 +327,8 @@ class TransactionHistoryRepository {
       const [rows] = await connection.execute(sql, [tahun, bulan]);
 
       if (rows.length === 0) {
-        throw createHttpError(404, "Data Tidak Ditemukan");
+        // throw createHttpError(404, "Data Tidak Ditemukan");
+        return null
       }
 
       // Mapping hasil query

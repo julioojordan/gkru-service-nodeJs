@@ -33,7 +33,8 @@ class UserRepository {
       const [rows] = await connection.execute(sql);
 
       if (rows.length === 0) {
-        throw createHttpError(404, "Tidak ada data user ditemukan");
+        // throw createHttpError(404, "Tidak ada data user ditemukan");
+        return null
       }
 
       return rows;

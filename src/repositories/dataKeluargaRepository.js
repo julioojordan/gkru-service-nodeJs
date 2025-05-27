@@ -230,7 +230,8 @@ class DataKeluargaRepository {
       const [rows] = await connection.execute(sql, params);
 
       if (rows.length === 0) {
-        throw createHttpError(500, "Data Tidak Ditemukan");
+        // throw createHttpError(500, "Data Tidak Ditemukan");
+        return { Total: 0 };
       }
 
       return { Total: rows[0].total };
@@ -254,7 +255,8 @@ class DataKeluargaRepository {
       const [rows] = await connection.execute(sql);
 
       if (rows.length === 0) {
-        throw createHttpError(500, "Data Tidak Ditemukan");
+        // throw createHttpError(500, "Data Tidak Ditemukan");
+        return { Total: 0 };
       }
 
       return { Total: rows[0].total };
