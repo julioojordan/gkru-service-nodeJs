@@ -129,6 +129,7 @@ async function startServer() {
 
   // Setup Routes
   setupRoutes(app, logger);
+  app.use('/uploads', express.static(path.join(__dirname, 'src/uploads')));
 
   // Start Server
   const PORT = 3001;

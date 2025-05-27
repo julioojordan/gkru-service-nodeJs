@@ -407,7 +407,7 @@ class TransactionHistoryRepository {
     }
   }
 
-  async findAllHistoryWithTimeFilter(tahun, bulan, idLingkungan, idWilayah,connection) {
+  async findAllHistoryWithTimeFilter(tahun, bulan, idLingkungan, idWilayah, connection) {
     try {
       let sql = `
         SELECT 

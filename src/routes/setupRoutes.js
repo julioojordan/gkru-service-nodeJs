@@ -465,7 +465,8 @@ const setupRoutes = (app, logger) => {
   });
 
   // ========== STATIC FILE ==============
-  app.use("/uploads", express.static("uploads"));
+  // app.use("/uploads", express.static("uploads"));
+  // app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
   logger.info("Routes setup completed");
 };

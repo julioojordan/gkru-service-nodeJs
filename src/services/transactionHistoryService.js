@@ -113,22 +113,15 @@ class TransactionHistoryService {
   }
 
   async findAllHistoryWithTimeFilter(query) {
-    const { tahun, bulan, lingkungan, wilayah } = query;
-    let bulanArray = [];
-    if (bulan) {
-      bulanArray = Array.isArray(bulan) ? bulan : [bulan];
-      bulanArray = bulanArray.map(Number);
-    }
-
-    console.log({ bulanArray });
+    const { tahun, bulan, idLingkungan, idWilayah } = query;
     const connection = await this.db.getConnection();
     try {
       await connection.beginTransaction();
       const result = await this.repository.findAllHistoryWithTimeFilter(
         tahun,
-        bulanArray,
-        lingkungan,
-        wilayah,
+        bulan,
+        idLingkungan,
+        idWilayah,
         connection
       );
       await connection.commit();
