@@ -31,7 +31,8 @@ class TransactionHistoryRepository {
       const [rows] = await connection.execute(query, params);
 
       if (rows.length === 0 || rows[0].total === null) {
-        throw createHttpError(500, "Data Tidak Ditemukan");
+        // throw createHttpError(500, "Data Tidak Ditemukan");
+        return { Nominal: 0 };
       }
 
       return { Nominal: rows[0].total };
@@ -68,7 +69,8 @@ class TransactionHistoryRepository {
       const [rows] = await connection.execute(sql, params);
 
       if (rows.length === 0) {
-        throw createHttpError(500, "Data Tidak Ditemukan");
+        // throw createHttpError(500, "Data Tidak Ditemukan");
+        return { Nominal: 0 };
       }
 
       // Jika hasil query NULL, set ke 0
@@ -384,7 +386,8 @@ class TransactionHistoryRepository {
       const [rows] = await connection.execute(sql, params);
 
       if (rows.length === 0) {
-        throw createHttpError(404, "Data Tidak Ditemukan");
+        // throw createHttpError(404, "Data Tidak Ditemukan");
+        return null
       }
 
       // Mapping hasil query
