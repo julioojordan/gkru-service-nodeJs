@@ -25,6 +25,5 @@ RUN npm ci
 COPY private.pem /app/private.pem
 
 COPY . .
-RUN npm run build
 
 CMD ["npm", "start"]
