@@ -27,4 +27,4 @@ COPY private.pem /app/private.pem
 COPY . .
 RUN npm run build
 
-CMD if [ "$NODE_ENV" = "development" ]; then npm start; else serve -s build -l 5000; fi
+CMD ["npm", "start"]
