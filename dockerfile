@@ -8,6 +8,7 @@ ARG DB_PORT=3306
 ARG DB_USER=root
 ARG DB_PASSWORD=root
 ARG DB_NAME=gkru_app
+ARG DB_MAX_CONNS=50
 ARG PRIVATE_KEY_PATH=/app/private.pem
 
 # set ke runtime ENV
@@ -17,6 +18,7 @@ ENV NODE_ENV=${NODE_ENV} \
     DB_USER=${DB_USER} \
     DB_PASSWORD=${DB_PASSWORD} \
     DB_NAME=${DB_NAME} \
+    DB_MAX_CONNS=${DB_MAX_CONNS} \
     PRIVATE_KEY_PATH=${PRIVATE_KEY_PATH}
 
 COPY package.json package-lock.json ./

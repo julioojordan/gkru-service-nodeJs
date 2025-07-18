@@ -1,3 +1,4 @@
+require('dotenv').config(); 
 const express = require("express");
 const mysql = require("mysql2/promise");
 const winston = require("winston");
@@ -37,13 +38,23 @@ try {
 // === Setup Database Connection (Async) ===
 async function initDatabase() {
   try {
-    const db = await mysql.createPool({
-      host: "localhost",
-      user: "root",
-      password: "root",
-      database: "gkru_app",
+   const {
+      DB_HOST,
+      DB_PORT,
+      DB_USER,
+      DB_PASSWORD,
+      DB_NAME,
+      DB_MAX_CONNS
+    } = process.env;
+
+    const db = mysql.createPool({
+      host: DB_HOST,
+      port: DB_PORT ? parseInt(DB_PORT, 10) : 3306,
+      user: DB_USER,
+      password: DB_PASSWORD,
+      database: DB_NAME,
       waitForConnections: true,
-      connectionLimit: 10,
+      connectionLimit: DB_MAX_CONNS,
       queueLimit: 0,
     });
 
