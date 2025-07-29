@@ -359,8 +359,8 @@ class DataKeluargaRepository {
         Status: row.status,
         JenisKelamin: row.jenis_kelamin,
         NoTelp: row.no_telp,
-        IsBaptis: anggotaRel.isBaptis,
-        AlasanBelumBaptis: anggotaRel.alasan_belum_baptis
+        IsBaptis: row.isBaptis,
+        AlasanBelumBaptis: row.alasan_belum_baptis
       }));
     } catch (error) {
       throw createHttpError(
