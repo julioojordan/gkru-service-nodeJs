@@ -334,8 +334,7 @@ const setupRoutes = (app, logger) => {
         }
         let parsedHistory;
         parsedHistory = JSON.parse(req.body.History);
-        console.log({ parsedHistory });
-        req.body = parsedHistory;
+        req.body.History = parsedHistory;
         await transactionHistoryController.addSantunan(req, res);
       } catch (err) {
         console.log(err);
@@ -356,8 +355,7 @@ const setupRoutes = (app, logger) => {
         }
         let parsedHistory;
         parsedHistory = JSON.parse(req.body.History);
-        console.log({ parsedHistory });
-        req.body = parsedHistory;
+        req.body.History = parsedHistory;
         await transactionHistoryController.addBatch(req, res);
       } catch (err) {
         console.log(err);

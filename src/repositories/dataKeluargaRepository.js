@@ -28,7 +28,7 @@ class DataKeluargaRepository {
       // Ambil data anggota keluarga
       const sqlAnggota = `
         SELECT a.id, a.nama_lengkap, a.tanggal_lahir, a.tanggal_baptis, 
-               a.keterangan, a.status, a.jenis_kelamin, a.no_telp, 
+               a.keterangan, a.status, a.jenis_kelamin, a.no_telp, a.isBaptis, a.alasan_belum_baptis,
                r.hubungan 
         FROM keluarga_anggota_rel r
         JOIN data_anggota a ON r.id_anggota = a.id
@@ -50,6 +50,8 @@ class DataKeluargaRepository {
           Status: anggotaRel.status,
           JenisKelamin: anggotaRel.jenis_kelamin,
           NoTelp: anggotaRel.no_telp,
+          IsBaptis: anggotaRel.isBaptis,
+          AlasanBelumBaptis: anggotaRel.alasan_belum_baptis
         };
 
         if (anggotaRel.hubungan === "Kepala Keluarga") {
@@ -138,7 +140,7 @@ class DataKeluargaRepository {
         // Ambil data anggota keluarga
         const sqlAnggota = `
           SELECT a.id, a.nama_lengkap, a.tanggal_lahir, a.tanggal_baptis, 
-                 a.keterangan, a.status, a.jenis_kelamin, a.no_telp, 
+                 a.keterangan, a.status, a.jenis_kelamin, a.no_telp, a.isBaptis, a.alasan_belum_baptis,
                  r.hubungan 
           FROM keluarga_anggota_rel r
           JOIN data_anggota a ON r.id_anggota = a.id
@@ -162,6 +164,8 @@ class DataKeluargaRepository {
             Status: anggotaRel.status,
             JenisKelamin: anggotaRel.jenis_kelamin,
             NoTelp: anggotaRel.no_telp,
+            IsBaptis: anggotaRel.isBaptis,
+            AlasanBelumBaptis: anggotaRel.alasan_belum_baptis
           };
 
           if (anggotaRel.hubungan === "Kepala Keluarga") {
@@ -332,7 +336,7 @@ class DataKeluargaRepository {
             SELECT 
                 a.id, a.hubungan, a.id_anggota, 
                 b.nama_lengkap, b.tanggal_lahir, b.tanggal_baptis, 
-                b.keterangan, b.status, b.jenis_kelamin, b.no_telp 
+                b.keterangan, b.status, b.jenis_kelamin, b.no_telp, b.isBaptis, b.alasan_belum_baptis
             FROM keluarga_anggota_rel a 
             JOIN data_anggota b ON a.id_anggota = b.id 
             WHERE a.id_keluarga = ?
@@ -355,6 +359,8 @@ class DataKeluargaRepository {
         Status: row.status,
         JenisKelamin: row.jenis_kelamin,
         NoTelp: row.no_telp,
+        IsBaptis: anggotaRel.isBaptis,
+        AlasanBelumBaptis: anggotaRel.alasan_belum_baptis
       }));
     } catch (error) {
       throw createHttpError(

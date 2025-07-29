@@ -2,10 +2,7 @@ const {
   addLingkunganOrWilayahQueryHelper,
   convertToInterfaceArray,
 } = require("../helpers/addLingkunganOrWilayahQueryHelper");
-const {
-    mapToThFinal,
-    mapToThFinal2,
-  } = require("../helpers/thMapper");
+const { mapToThFinal, mapToThFinal2 } = require("../helpers/thMapper");
 const createHttpError = require("http-errors");
 const saveFile = require("../helpers/saveFileHelper");
 
@@ -107,6 +104,7 @@ class TransactionHistoryRepository {
           a.bulan,
           a.tahun,
           a.group_id,
+          a.id_transaksi,
           b.username, 
           d.kode_lingkungan, 
           d.nama_lingkungan, 
@@ -157,7 +155,7 @@ class TransactionHistoryRepository {
           a.created_date, a.updated_date, a.bulan, a.tahun,
           b.username, 
           d.kode_lingkungan, d.nama_lingkungan, 
-          e.kode_wilayah, e.nama_wilayah, f.file, a.group_id
+          e.kode_wilayah, e.nama_wilayah, f.file, a.group_id, a.id_transaksi
         FROM riwayat_transaksi a
         LEFT JOIN users b ON a.created_by = b.id
         LEFT JOIN data_keluarga c ON a.id_keluarga = c.id
@@ -189,7 +187,7 @@ class TransactionHistoryRepository {
         SELECT 
           a.id, a.nominal, a.id_keluarga, a.keterangan, a.created_by, 
           c.id_wilayah, c.id_lingkungan, a.updated_by, a.sub_keterangan, 
-          a.created_date, a.updated_date, a.bulan, a.tahun,
+          a.created_date, a.updated_date, a.bulan, a.tahun, a.id_transaksi,
           b.username, 
           d.kode_lingkungan, d.nama_lingkungan, 
           e.kode_wilayah, e.nama_wilayah
@@ -198,18 +196,18 @@ class TransactionHistoryRepository {
         LEFT JOIN data_keluarga c ON a.id_keluarga = c.id
         LEFT JOIN lingkungan d ON c.id_lingkungan = d.id
         LEFT JOIN wilayah e ON c.id_wilayah = e.id
-        ORDER BY a.created_date ASC`;
+        ORDER BY a.created_date DESC`;
 
       const [rows] = await connection.execute(sql);
-      console.log({rows});
+      console.log({ rows });
 
       if (rows.length === 0) {
         // throw createHttpError(404, "Data Tidak Ditemukan");
-        return null
+        return null;
       }
 
       let results = [];
-      rows.forEach(row => {
+      rows.forEach((row) => {
         results.push(mapToThFinal(row));
       });
       return results;
@@ -239,6 +237,7 @@ class TransactionHistoryRepository {
           a.updated_date, 
           a.bulan, 
           a.tahun,
+          a.id_transaksi,
           b.username, 
           d.kode_lingkungan, 
           d.nama_lingkungan, 
@@ -259,20 +258,20 @@ class TransactionHistoryRepository {
         WHERE YEAR(a.created_date) = ?
         ORDER BY a.created_date ASC;
       `;
-      if (tahun){
-        year = tahun
+      if (tahun) {
+        year = tahun;
       }
 
       const [rows] = await connection.execute(sql, [year]);
 
       if (rows.length === 0) {
         // throw createHttpError(404, "Data Tidak Ditemukan");
-        return null
+        return null;
       }
 
       // Mapping hasil query
       let results = [];
-      rows.forEach(row => {
+      rows.forEach((row) => {
         results.push(mapToThFinal2(row));
       });
 
@@ -303,6 +302,7 @@ class TransactionHistoryRepository {
           a.updated_date, 
           a.bulan, 
           a.tahun,
+          a.id_transaksi,
           b.username, 
           d.kode_lingkungan, 
           d.nama_lingkungan, 
@@ -320,7 +320,7 @@ class TransactionHistoryRepository {
           ON c.id_wilayah = e.id
         LEFT JOIN data_anggota f 
           ON c.id_kepala_keluarga = f.id
-        WHERE tahun = ? AND bulan = ?
+        WHERE YEAR(a.created_date) = ? AND MONTH(a.created_date) = ?
         ORDER BY a.created_date ASC;
       `;
 
@@ -328,12 +328,12 @@ class TransactionHistoryRepository {
 
       if (rows.length === 0) {
         // throw createHttpError(404, "Data Tidak Ditemukan");
-        return null
+        return null;
       }
 
       // Mapping hasil query
       let results = [];
-      rows.forEach(row => {
+      rows.forEach((row) => {
         results.push(mapToThFinal2(row));
       });
 
@@ -363,6 +363,7 @@ class TransactionHistoryRepository {
           a.updated_date, 
           a.bulan, 
           a.tahun,
+          a.id_transaksi,
           b.username, 
           d.kode_lingkungan, 
           d.nama_lingkungan, 
@@ -389,12 +390,12 @@ class TransactionHistoryRepository {
 
       if (rows.length === 0) {
         // throw createHttpError(404, "Data Tidak Ditemukan");
-        return null
+        return null;
       }
 
       // Mapping hasil query
       let results = [];
-      rows.forEach(row => {
+      rows.forEach((row) => {
         results.push(mapToThFinal(row));
       });
 
@@ -407,7 +408,13 @@ class TransactionHistoryRepository {
     }
   }
 
-  async findAllHistoryWithTimeFilter(tahun, bulan, idLingkungan, idWilayah, connection) {
+  async findAllHistoryWithTimeFilter(
+    tahun,
+    bulan,
+    idLingkungan,
+    idWilayah,
+    connection
+  ) {
     try {
       let sql = `
         SELECT 
@@ -424,6 +431,7 @@ class TransactionHistoryRepository {
           a.updated_date, 
           a.bulan, 
           a.tahun,
+          a.id_transaksi,
           b.username, 
           d.kode_lingkungan, 
           d.nama_lingkungan, 
@@ -459,7 +467,7 @@ class TransactionHistoryRepository {
 
       // Mapping hasil query
       let results = [];
-      rows.forEach(row => {
+      rows.forEach((row) => {
         results.push(mapToThFinal(row));
       });
 
@@ -478,7 +486,8 @@ class TransactionHistoryRepository {
         throw createHttpError(400, "Invalid TH, it must be an integer");
       }
 
-      const { nominal, keterangan, subKeterangan, idKeluarga, updatedBy } = requestBody;
+      const { nominal, keterangan, subKeterangan, idKeluarga, updatedBy } =
+        requestBody;
       const currentTime = new Date();
 
       let setClauses = [];
@@ -510,7 +519,9 @@ class TransactionHistoryRepository {
       setClauses.push("updated_date = ?");
       params.push(currentTime);
 
-      let sql = `UPDATE riwayat_transaksi SET ${setClauses.join(", ")} WHERE id = ?`;
+      let sql = `UPDATE riwayat_transaksi SET ${setClauses.join(
+        ", "
+      )} WHERE id = ?`;
       params.push(idTh);
 
       const [result] = await connection.execute(sql, params);
@@ -531,7 +542,10 @@ class TransactionHistoryRepository {
       if (error instanceof createHttpError.HttpError) {
         throw error;
       }
-      throw createHttpError(500, `Gagal untuk update data riwayat transaksi: ${error.message}`);
+      throw createHttpError(
+        500,
+        `Gagal untuk update data riwayat transaksi: ${error.message}`
+      );
     }
   }
 
@@ -553,19 +567,26 @@ class TransactionHistoryRepository {
       if (error instanceof createHttpError.HttpError) {
         throw error;
       }
-      throw createHttpError(500, `Gagal menghapus data riwayat transaksi: ${error.message}`);
+      throw createHttpError(
+        500,
+        `Gagal menghapus data riwayat transaksi: ${error.message}`
+      );
     }
   }
 
   // Add Iuran (Batch)
   async addBatch(historyData, file, connection) {
     try {
-      if (!Array.isArray(historyData) || historyData.length === 0) {
+      if (
+        !Array.isArray(historyData.History) ||
+        historyData.History.length === 0
+      ) {
         throw createHttpError(400, "Invalid history data");
       }
 
       let filePath = null;
       let lastInsertIdAddFile = null;
+      const kode_lingkungan = historyData.KodeLingkungan;
 
       if (file) {
         filePath = await saveFile(file);
@@ -581,7 +602,12 @@ class TransactionHistoryRepository {
         VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
       const responses = [];
-      for (const history of historyData) {
+      const createdDate = new Date();
+      const TahunTx = createdDate.getFullYear();
+      const BulanTx = createdDate.getMonth() + 1;
+      const paddedMonth = BulanTx.toString().padStart(2, "0");
+
+      for (const history of historyData.History) {
         const {
           Nominal,
           IdKeluarga,
@@ -591,7 +617,6 @@ class TransactionHistoryRepository {
           Bulan,
           Tahun,
         } = history;
-        const createdDate = new Date();
 
         const [result] = await connection.execute(sqlScript, [
           Nominal,
@@ -605,8 +630,16 @@ class TransactionHistoryRepository {
           lastInsertIdAddFile,
         ]);
 
+        const idTransaksi = `${Keterangan}${TahunTx}${paddedMonth}${kode_lingkungan}@${result.insertId}`;
+
+        await connection.execute(
+          "UPDATE riwayat_transaksi SET id_transaksi = ? WHERE id = ?",
+          [idTransaksi, result.insertId]
+        );
+
         responses.push({
           Id: result.insertId,
+          IdTransaksi: idTransaksi,
           Nominal,
           IdKeluarga,
           Keterangan,
@@ -622,10 +655,13 @@ class TransactionHistoryRepository {
       if (error instanceof createHttpError.HttpError) {
         throw error;
       }
-      throw createHttpError(500, `Gagal menambahkan batch transaksi: ${error.message}`);
+      throw createHttpError(
+        500,
+        `Gagal menambahkan batch transaksi: ${error.message}`
+      );
     }
   }
-  
+
   // Add Santunan
   async addSantunan(formData, file, connection) {
     try {
@@ -637,15 +673,27 @@ class TransactionHistoryRepository {
         SubKeterangan,
         Bulan,
         Tahun,
-      } = formData;
+      } = formData.History;
 
-      if (!Nominal || !IdKeluarga || !Keterangan || !CreatedBy || !Bulan || !Tahun) {
+      const kode_lingkungan = formData.KodeLingkungan;
+
+      if (
+        !Nominal ||
+        !IdKeluarga ||
+        !Keterangan ||
+        !CreatedBy ||
+        !Bulan ||
+        !Tahun
+      ) {
         throw createHttpError(400, "Missing required fields");
       }
-
-      const currentTime = new Date();
       let filePath = null;
       let lastInsertIdAddFile = null;
+
+      const createdDate = new Date();
+      const TahunTx = createdDate.getFullYear();
+      const BulanTx = createdDate.getMonth() + 1;
+      const paddedMonth = BulanTx.toString().padStart(2, "0");
 
       if (file) {
         filePath = await saveFile(file);
@@ -666,30 +714,40 @@ class TransactionHistoryRepository {
         Keterangan,
         CreatedBy,
         SubKeterangan,
-        currentTime,
+        createdDate,
         Bulan,
         Tahun,
         lastInsertIdAddFile,
       ]);
 
+      const idTransaksi = `${Keterangan}${TahunTx}${paddedMonth}${kode_lingkungan}@${result.insertId}`;
+
+      await connection.execute(
+        "UPDATE riwayat_transaksi SET id_transaksi = ? WHERE id = ?",
+        [idTransaksi, result.insertId]
+      );
+
       return {
         Id: result.insertId,
+        IdTransaksi: idTransaksi,
         Nominal,
         IdKeluarga,
         Keterangan,
         CreatorId: CreatedBy,
         SubKeterangan,
-        CreatedDate: currentTime,
+        CreatedDate: createdDate,
         Group: lastInsertIdAddFile,
       };
     } catch (error) {
       if (error instanceof createHttpError.HttpError) {
         throw error;
       }
-      throw createHttpError(500, `Gagal menambahkan transaksi: ${error.message}`);
+      throw createHttpError(
+        500,
+        `Gagal menambahkan transaksi: ${error.message}`
+      );
     }
   }
-
 }
 
 module.exports = TransactionHistoryRepository;

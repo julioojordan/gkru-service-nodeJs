@@ -29,6 +29,7 @@ const mapToThFinal = (dataThRaw) => {
     Tahun: dataThRaw.tahun,
     GroupId: dataThRaw.group_id ?? 0,
     File: dataThRaw.file ?? "", // Jika NULL, default ke string kosong
+    IdTransaksi: dataThRaw.id_transaksi,
   };
 };
 
@@ -61,6 +62,7 @@ const mapToThFinal2 = (dataThRaw) => {
     Tahun: dataThRaw.tahun,
     GroupId: dataThRaw.group_id ?? 0,
     NamaKepalaKeluarga: dataThRaw.nama_kepala_keluarga ?? "", // Jika NULL, default ke string kosong
+    IdTransaksi: dataThRaw.id_transaksi,
   };
 };
 

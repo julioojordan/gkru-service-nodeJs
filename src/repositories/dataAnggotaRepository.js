@@ -36,18 +36,24 @@ class DataAnggotaRepository {
   static async addAnggota(requestBody, connection) {
     try {
       const sql = `
-        INSERT INTO data_anggota(nama_lengkap, tanggal_lahir, tanggal_baptis, keterangan, status, jenis_kelamin, no_telp)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO data_anggota(nama_lengkap, tanggal_lahir, tanggal_baptis, keterangan, status, jenis_kelamin, no_telp, isBaptis, alasan_belum_baptis)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
+      const tb =
+        requestBody.tanggalBaptis && requestBody.tanggalBaptis.trim() !== ""
+          ? requestBody.tanggalBaptis
+          : null;
       const [result] = await connection.execute(sql, [
         requestBody.namaLengkap,
         requestBody.tanggalLahir,
-        requestBody.tanggalBaptis,
+        tb,
         requestBody.keterangan,
         requestBody.status,
         requestBody.jenisKelamin ?? "",
         requestBody.noTelp ?? "",
+        requestBody.isBaptis,
+        requestBody.alasanBelumBaptis,
       ]);
 
       const lastInsertId = result.insertId;
@@ -68,7 +74,7 @@ class DataAnggotaRepository {
         NamaLengkap: requestBody.namaLengkap,
         Keterangan: requestBody.keterangan,
         TanggalLahir: requestBody.tanggalLahir,
-        TanggalBaptis: requestBody.tanggalBaptis,
+        TanggalBaptis: tb,
         JenisKelamin: requestBody.jenisKelamin ?? "",
       };
     } catch (error) {
@@ -83,7 +89,7 @@ class DataAnggotaRepository {
     try {
       const sql = `
         SELECT a.id, a.nama_lengkap, a.tanggal_lahir, a.tanggal_baptis, a.keterangan, 
-               a.status, a.jenis_kelamin, a.no_telp, b.id_keluarga, b.hubungan, 
+               a.status, a.jenis_kelamin, a.no_telp, a.isBaptis, a.alasan_belum_baptis, b.id_keluarga, b.hubungan, 
                c.id_wilayah, c.id_lingkungan, d.kode_lingkungan, d.nama_lingkungan, 
                e.kode_wilayah, e.nama_wilayah 
         FROM data_anggota a 
@@ -117,6 +123,8 @@ class DataAnggotaRepository {
         NamaLingkungan: rows[0].nama_lingkungan,
         KodeWilayah: rows[0].kode_wilayah,
         NamaWilayah: rows[0].nama_wilayah,
+        IsBaptis: rows[0].isBaptis,
+        AlasanBelumBaptis: rows[0].alasan_belum_baptis,
       };
     } catch (error) {
       if (error instanceof createHttpError.HttpError) {
@@ -133,7 +141,7 @@ class DataAnggotaRepository {
     try {
       let sql = `
         SELECT a.id, a.nama_lengkap, a.tanggal_lahir, a.tanggal_baptis, a.keterangan, 
-               a.status, a.jenis_kelamin, a.no_telp, b.id_keluarga, b.hubungan, 
+               a.status, a.jenis_kelamin, a.no_telp, a.isBaptis, a.alasan_belum_baptis, b.id_keluarga, b.hubungan, 
                c.id_wilayah, c.id_lingkungan, d.kode_lingkungan, d.nama_lingkungan, 
                e.kode_wilayah, e.nama_wilayah 
         FROM data_anggota a 
@@ -177,6 +185,8 @@ class DataAnggotaRepository {
         NamaLingkungan: row.nama_lingkungan,
         KodeWilayah: row.kode_wilayah,
         NamaWilayah: row.nama_wilayah,
+        IsBaptis: row.isBaptis,
+        AlasanBelumBaptis: row.alasan_belum_baptis,
       }));
     } catch (error) {
       throw createHttpError(
@@ -190,7 +200,7 @@ class DataAnggotaRepository {
     try {
       let sql = `
         SELECT a.id, a.nama_lengkap, a.tanggal_lahir, a.tanggal_baptis, a.keterangan, 
-               a.status, a.jenis_kelamin, a.no_telp, b.id_keluarga, b.hubungan, 
+               a.status, a.jenis_kelamin, a.no_telp, a.isBaptis, a.alasan_belum_baptis, b.id_keluarga, b.hubungan, 
                c.id_wilayah, c.id_lingkungan, d.kode_lingkungan, d.nama_lingkungan, 
                e.kode_wilayah, e.nama_wilayah 
         FROM data_anggota a 
@@ -238,6 +248,8 @@ class DataAnggotaRepository {
         NamaLingkungan: row.nama_lingkungan,
         KodeWilayah: row.kode_wilayah,
         NamaWilayah: row.nama_wilayah,
+        IsBaptis: row.isBaptis,
+        AlasanBelumBaptis: row.alasan_belum_baptis,
       }));
     } catch (error) {
       throw createHttpError(
@@ -311,7 +323,6 @@ class DataAnggotaRepository {
 
       // Jika dari update bukan delete, update keterangan anggota lama menjadi "Anggota"
       if (idAnggota) {
-        console.log('Masuk Sini');
         await connection.execute(
           "UPDATE data_anggota SET keterangan = 'Anggota' WHERE id = ?",
           [idAnggota]
@@ -352,7 +363,11 @@ class DataAnggotaRepository {
       }
       if (data.tanggalBaptis) {
         updates.push("tanggal_baptis = ?");
-        params.push(data.tanggalBaptis);
+        const tb =
+        data.tanggalBaptis && data.tanggalBaptis.trim() !== ""
+          ? data.tanggalBaptis
+          : null;
+        params.push(tb);
       }
       if (data.noTelp) {
         updates.push("no_telp = ?");
@@ -369,6 +384,25 @@ class DataAnggotaRepository {
       if (data.jenisKelamin) {
         updates.push("jenis_kelamin = ?");
         params.push(data.jenisKelamin);
+      }
+      if (data.isBaptis !== null) {
+        updates.push("isBaptis = ?");
+        const bap = data.isBaptis ? 1 : 0;
+        params.push(data.isBaptis);
+      }
+      if (data.isBaptis == true) {
+        updates.push("alasan_belum_baptis = ?");
+        params.push(null);
+      }
+      
+      if (data.isBaptis == false) {
+        updates.push("tanggal_baptis = ?");
+        params.push(null);
+      }
+
+      if (data.alasanBelumBaptis) {
+        updates.push("alasan_belum_baptis = ?");
+        params.push(data.alasanBelumBaptis);
       }
 
       if (updates.length === 0) {
@@ -391,7 +425,7 @@ class DataAnggotaRepository {
       }
 
       return {
-        Id: idAnggota,
+        Id: parseInt(idAnggota, 10),
         NamaLengkap: data.namaLengkap,
         TanggalLahir: data.tanggalLahir,
         TanggalBaptis: data.tanggalBaptis,
@@ -399,6 +433,8 @@ class DataAnggotaRepository {
         Status: data.status,
         JenisKelamin: data.jenisKelamin,
         NoTelp: data.noTelp,
+        IsBaptis: data.isBaptis,
+        AlasanBelumBaptis: data.alasanBelumBaptis,
       };
     } catch (error) {
       if (error instanceof createHttpError.HttpError) {

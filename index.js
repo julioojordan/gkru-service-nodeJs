@@ -1,11 +1,32 @@
-require('dotenv').config(); 
+require("dotenv").config();
 const express = require("express");
 const mysql = require("mysql2/promise");
 const winston = require("winston");
 const { setupRoutes } = require("./src/routes/setupRoutes");
-const { DataWilayahRepository, UserRepository, DataLingkunganRepository, TransactionHistoryRepository, DataKeluargaRepository, DataAnggotaRepository } = require("./src/repositories");
-const { DataWilayahService, UserService, DataLingkunganService, TransactionHistoryService, DataKeluargaService, DataAnggotaService } = require("./src/services");
-const { DataWilayahController, UserController, DataLingkunganController, TransactionHistoryController, DataKeluargaController, DataAnggotaController } = require("./src/controllers");
+const {
+  DataWilayahRepository,
+  UserRepository,
+  DataLingkunganRepository,
+  TransactionHistoryRepository,
+  DataKeluargaRepository,
+  DataAnggotaRepository,
+} = require("./src/repositories");
+const {
+  DataWilayahService,
+  UserService,
+  DataLingkunganService,
+  TransactionHistoryService,
+  DataKeluargaService,
+  DataAnggotaService,
+} = require("./src/services");
+const {
+  DataWilayahController,
+  UserController,
+  DataLingkunganController,
+  TransactionHistoryController,
+  DataKeluargaController,
+  DataAnggotaController,
+} = require("./src/controllers");
 const fs = require("fs");
 const path = require("path");
 require("dotenv").config();
@@ -38,13 +59,14 @@ try {
 // === Setup Database Connection (Async) ===
 async function initDatabase() {
   try {
-   const {
-      DB_HOST,
-      DB_PORT,
-      DB_USER,
-      DB_PASSWORD,
-      DB_NAME,
-      DB_MAX_CONNS
+    const {
+      DB_HOST = "localhost",
+      DB_PORT = "3306",
+      DB_USER = "root",
+      DB_PASSWORD = "",
+      DB_NAME = "my_database",
+      DB_MAX_CONNS = 50,
+      DB_MAX_IDLE_CONNS = 15,
     } = process.env;
 
     const db = mysql.createPool({
@@ -55,7 +77,7 @@ async function initDatabase() {
       database: DB_NAME,
       waitForConnections: true,
       connectionLimit: DB_MAX_CONNS,
-      queueLimit: 0,
+      queueLimit: DB_MAX_IDLE_CONNS,
     });
 
     // Test Connection
@@ -98,19 +120,18 @@ async function startServer() {
       req.app.locals.db
     );
     const dataWilayahController = new DataWilayahController(dataWilayahService);
-    
+
     const dataLingkunganRepository = new DataLingkunganRepository();
     const dataLingkunganService = new DataLingkunganService(
       dataLingkunganRepository,
       req.app.locals.db
     );
-    const dataLingkunganController = new DataLingkunganController(dataLingkunganService);
+    const dataLingkunganController = new DataLingkunganController(
+      dataLingkunganService
+    );
 
     const userRepository = new UserRepository();
-    const userService = new UserService(
-      userRepository,
-      req.app.locals.db
-    );
+    const userService = new UserService(userRepository, req.app.locals.db);
     const userController = new UserController(userService);
 
     const transactionHistoryRepository = new TransactionHistoryRepository();
@@ -118,14 +139,18 @@ async function startServer() {
       transactionHistoryRepository,
       req.app.locals.db
     );
-    const transactionHistoryController = new TransactionHistoryController(transactionHistoryService);
+    const transactionHistoryController = new TransactionHistoryController(
+      transactionHistoryService
+    );
 
     const dataKeluargaRepository = new DataKeluargaRepository();
     const dataKeluargaService = new DataKeluargaService(
       dataKeluargaRepository,
       req.app.locals.db
     );
-    const dataKeluargaController = new DataKeluargaController(dataKeluargaService);
+    const dataKeluargaController = new DataKeluargaController(
+      dataKeluargaService
+    );
 
     const dataAnggotaRepository = new DataAnggotaRepository();
     const dataAnggotaService = new DataAnggotaService(
@@ -133,14 +158,21 @@ async function startServer() {
       req.app.locals.db
     );
     const dataAnggotaController = new DataAnggotaController(dataAnggotaService);
-    
-    req.app.locals.controllers = { dataWilayahController, userController, dataLingkunganController, transactionHistoryController, dataKeluargaController, dataAnggotaController };
+
+    req.app.locals.controllers = {
+      dataWilayahController,
+      userController,
+      dataLingkunganController,
+      transactionHistoryController,
+      dataKeluargaController,
+      dataAnggotaController,
+    };
     next();
   });
 
   // Setup Routes
   setupRoutes(app, logger);
-  app.use('/uploads', express.static(path.join(__dirname, 'src/uploads')));
+  app.use("/uploads", express.static(path.join(__dirname, "src/uploads")));
 
   // Start Server
   const PORT = 3001;
