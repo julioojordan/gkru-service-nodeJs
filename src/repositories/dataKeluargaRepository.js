@@ -8,7 +8,7 @@ class DataKeluargaRepository {
     try {
       const sql = `
         SELECT k.id, k.id_wilayah, k.id_lingkungan, k.nomor, k.id_kepala_keluarga, 
-               k.alamat, k.status, k.nomor_kk_gereja, 
+               k.alamat, k.status, 
                l.kode_lingkungan, l.nama_lingkungan, 
                w.kode_wilayah, w.nama_wilayah
         FROM data_keluarga k
@@ -83,7 +83,6 @@ class DataKeluargaRepository {
         Alamat: dataKeluargaRaw.alamat,
         Anggota: anggota,
         Status: dataKeluargaRaw.status,
-        NomorKKGereja: dataKeluargaRaw.nomor_kk_gereja,
       };
     } catch (error) {
       if (error instanceof createHttpError.HttpError) {
@@ -100,7 +99,7 @@ class DataKeluargaRepository {
     try {
       let sql = `
         SELECT k.id, k.id_wilayah, k.id_lingkungan, k.nomor, k.id_kepala_keluarga, 
-               k.alamat, k.status, k.nomor_kk_gereja, 
+               k.alamat, k.status,
                l.kode_lingkungan, l.nama_lingkungan, 
                w.kode_wilayah, w.nama_wilayah
         FROM data_keluarga k
@@ -196,8 +195,7 @@ class DataKeluargaRepository {
           KepalaKeluarga: kepalaKeluarga,
           Alamat: dataKeluargaRaw.alamat,
           Anggota: anggota,
-          Status: dataKeluargaRaw.status,
-          NomorKKGereja: dataKeluargaRaw.nomor_kk_gereja,
+          Status: dataKeluargaRaw.status
         });
       }
 
@@ -276,7 +274,7 @@ class DataKeluargaRepository {
   }
 
   async add(request, connection) {
-    const { idWilayah, idLingkungan, nomor, alamat, nomorKKGereja } = request;
+    const { idWilayah, idLingkungan, nomor, alamat } = request;
 
     try {
       // 1. Tambah data anggota (kepala keluarga) dulu
@@ -288,16 +286,15 @@ class DataKeluargaRepository {
 
       // 2. Tambah data keluarga
       const sqlInsert = `
-        INSERT INTO data_keluarga(id_wilayah, id_lingkungan, nomor, id_kepala_keluarga, alamat, nomor_kk_gereja) 
-        VALUES(?, ?, ?, ?, ?, ?)
+        INSERT INTO data_keluarga(id_wilayah, id_lingkungan, nomor, id_kepala_keluarga, alamat) 
+        VALUES(?, ?, ?, ?, ?)
       `;
       const [result] = await connection.execute(sqlInsert, [
         idWilayah,
         idLingkungan,
         nomor,
         kepalaKeluarga.Id,
-        alamat,
-        nomorKKGereja,
+        alamat
       ]);
 
       if (!result.insertId) {
@@ -316,8 +313,7 @@ class DataKeluargaRepository {
         Lingkungan: idLingkungan,
         Nomor: nomor,
         KepalaKeluarga: kepalaKeluarga.Id,
-        Alamat: alamat,
-        NomorKKGereja: nomorKKGereja,
+        Alamat: alamat
       };
     } catch (error) {
       if (error instanceof createHttpError.HttpError) {
@@ -377,7 +373,6 @@ class DataKeluargaRepository {
       nomor,
       alamat,
       status,
-      nomorKKGereja,
       idKepalaKeluarga,
       oldIdKepalaKeluarga,
     } = request;
@@ -407,10 +402,6 @@ class DataKeluargaRepository {
       if (status) {
         setClauses.push("status = ?");
         params.push(status);
-      }
-      if (nomorKKGereja) {
-        setClauses.push("nomor_kk_gereja = ?");
-        params.push(nomorKKGereja);
       }
       if (idKepalaKeluarga) {
         setClauses.push("id_kepala_keluarga = ?");
@@ -484,7 +475,6 @@ class DataKeluargaRepository {
         Alamat: alamat,
         Status: status,
         Anggota: anggota,
-        NomorKKGereja: nomorKKGereja,
       };
     } catch (error) {
       if (error instanceof createHttpError.HttpError) {
